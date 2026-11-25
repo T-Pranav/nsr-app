@@ -7,6 +7,8 @@ let keys = null, keysAt = 0, cache = null;
 const b64 = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(s.length / 4) * 4, '=')), c => c.charCodeAt(0));
 const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
 
+// Poultry Manager answers with capitalised keys ({"Message","Status":"403"}); read keys in any case
+const low = o => Array.isArray(o) ? o.map(low) : o && typeof o === 'object' ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k.toLowerCase(), low(v)])) : o;
 async function staff(req) {
   const tok = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
   const p = tok.split('.'); if (p.length !== 3) return null;
@@ -31,8 +33,8 @@ export default async req => {
     const r = await fetch(base + '/oauth/silo/list', { method: 'POST', body: '{}', signal: AbortSignal.timeout(12000),
       headers: { client_id: E.SILO_CLIENT_ID, client_secret: E.SILO_CLIENT_SECRET, name: E.SILO_TENANT, 'Content-Type': 'application/json' } });
     if (r.status === 401 || r.status === 403) return json({ error: 'silo-login' }, 502);
-    const j = await r.json();
-    if (j.status !== 200) return json({ error: j.message || 'silo-error' }, 502);
+    const j = low(await r.json());
+    if (+j.status !== 200) return json({ error: j.message || 'silo-error' }, 502);
     cache = { at: Date.now(), silos: (j.silos || []).map(s => ({ id: s.id, name: s.name || 'Silo ' + s.id, la: s.last_active || null, kg: Number.isFinite(+s.current_value) ? +s.current_value : null })) };
     return json(cache);
   } catch (e) { return json({ error: 'silo-offline' }, 502); }
