@@ -1,0 +1,18 @@
+rules_version = '2';
+// NSR Poultry Farms – photo storage. Same roles as the database (users/{uid}).
+service firebase.storage {
+  match /b/{bucket}/o {
+    function staff()  { return request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                               && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)); }
+    function role()   { return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role; }
+    function photoOk(){ return request.resource.size < 3 * 1024 * 1024 && request.resource.contentType.matches('image/.*'); }
+
+    // shed photos and check-in photos: farm staff
+    match /photos/{rest=**} { allow read: if staff() && role() in ['sup', 'chk', 'admin'];
+                              allow write: if staff() && role() in ['sup', 'chk', 'admin'] && photoOk(); }
+    match /visits/{rest=**} { allow read: if staff() && role() in ['sup', 'chk', 'admin'];
+                              allow write: if staff() && role() in ['sup', 'chk', 'admin'] && photoOk(); }
+    // Aadhaar cards: HR and Management only
+    match /aadhaar/{rest=**} { allow read, write: if staff() && role() in ['hr', 'chk', 'admin'] && (request.resource == null || photoOk()); }
+  }
+}

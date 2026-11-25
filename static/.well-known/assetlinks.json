@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.nsrpoultry.farms",
+        "sha256_cert_fingerprints": ["4D:E7:E1:57:EE:5C:CF:18:6C:0E:D4:1A:C9:B2:3A:21:D1:E5:84:0D:62:A3:E8:36:36:D5:23:00:DE:32:33:EE"]
+      }
+    }]

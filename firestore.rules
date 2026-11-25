@@ -1,0 +1,67 @@
+rules_version = '2';
+// NSR Poultry Farms – who can read and write what.
+// Every staff member signs in with their own account (created from Setup → Users).
+// Their role is kept in users/{uid}, written only by Management.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn()  { return request.auth != null; }
+    function isStaff()   { return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                                  && exists(/databases/$(database)/documents/users/$(request.auth.uid)); }
+    function me()        { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function layer()     { return isStaff() ? me().role : ''; }
+    function mill()      { return isStaff() ? me().mill : ''; }
+    function isMgmt()    { return layer() == 'admin'; }
+    function isLayer()   { return layer() in ['sup', 'chk', 'admin']; }
+    function isOffice()  { return layer() in ['chk', 'admin']; }
+    // P&L: Management, plus users Management has given P&L access to
+    function canPnl()    { return isMgmt() || (isStaff() && me().get('pnl', false) == true); }
+    function isHR()      { return layer() in ['hr', 'chk', 'admin']; }
+    function isMill()    { return mill() in ['staff', 'admin'] || isMgmt(); }
+
+    // login screen: names (no PINs), logo – readable before signing in
+    match /public/{doc}        { allow read: if signedIn(); allow write: if isMgmt(); }
+    match /settings/logo       { allow read: if signedIn(); allow write: if isMgmt(); }
+
+    // accounts
+    match /users/{uid}         { allow read: if isStaff() && (uid == request.auth.uid || isMgmt()); allow write: if isMgmt(); }
+    match /secure/{doc}        { allow read, write: if isMgmt(); }
+    match /settings/staff      { allow read, write: if isMgmt(); }
+
+    // farm settings: everyone signed in reads; office writes parties, Management the rest; HR its own
+    match /settings/hr         { allow read: if isHR(); allow write: if isHR(); }
+    match /settings/parties    { allow read: if isStaff(); allow write: if isOffice(); }
+    match /settings/sop        { allow read, write: if isOffice(); }
+    match /settings/batches    { allow read: if isStaff(); allow write: if isOffice(); }
+    match /settings/{doc}      { allow read: if isStaff() && !(doc in ['hr', 'staff', 'sop']); allow write: if isMgmt(); }
+
+    // layer farm daily work
+    match /day/{id}            { allow read, write: if isLayer(); }
+    match /photos/{id}         { allow read, write: if isLayer(); }
+    match /visits/{id}         { allow read, write: if isLayer(); }
+    match /vacc/{id}           { allow read, write: if isLayer(); }
+    match /pmai/{id}           { allow read, write: if isOffice(); }
+    match /duty/{id}           { allow read, write: if isStaff(); }
+    match /audit/{id}          { allow read: if isMgmt(); allow create: if isStaff(); }
+
+    // P&L (also encrypted in the app) – Management only
+    // bird & egg weights: supervisors, Administrator and Management enter; office deletes
+    match /wt/{id}             { allow read, create, update: if isLayer(); allow delete: if isOffice(); }
+    // SOP – sales order projection: Management and Administrator
+    match /sop/{id}            { allow read, write: if isOffice(); }
+    match /pnl/{id}            { allow read, write: if canPnl(); }
+
+    // HR – Administrator has the same HR access as Management; Aadhaar for HR, Administrator, Management
+    match /hrat/{id}           { allow read, write: if isHR(); }
+    match /hrled/{id}          { allow read, write: if isHR(); }
+    match /hrdoc/{id}          { allow read, write: if layer() in ['hr', 'chk', 'admin']; }
+
+    // feed mill: staff read (feed cost for P&L, production for HR), mill users write
+    match /fm_items/{id}       { allow read: if isStaff(); allow write: if isMill(); }
+    match /fm_days/{id}        { allow read: if isStaff(); allow write: if isMill(); }
+    match /fm_reg/{id}         { allow read: if isStaff(); allow write: if isMill(); }
+    match /fm_led/{id}         { allow read: if isMill(); allow write: if isMill(); }
+    match /fm_rmin/{id}       { allow read: if isStaff(); allow write: if isMill(); }
+    match /fm_cfg/{id}         { allow read: if isMill(); allow write: if isMill(); }
+  }
+}

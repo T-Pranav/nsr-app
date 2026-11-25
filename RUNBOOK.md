@@ -1,0 +1,28 @@
+# NSR app – runbook
+
+## How a change goes live
+1. A change is made on a branch (not `main`). GitHub builds it and puts it on a **test copy**:
+   `https://test-<branch>--nsr-poultry-farms.netlify.app` – try it on a phone.
+2. When it looks right, merge the branch into `main` (pull request → **Merge**).
+3. GitHub builds `main` and publishes it to the **live site** in about 2 minutes. Phones update themselves.
+
+No zip uploads. Netlify keeps every published version.
+
+## Roll back (about 1 minute)
+Netlify → Sites → nsr-poultry-farms → **Deploys** → click an older green deploy → **Publish deploy**.
+The live site switches back at once. Then fix the problem on a branch and merge again.
+
+## Secrets (GitHub → repo Settings → Secrets and variables → Actions)
+| Name | Where it comes from |
+|---|---|
+| `NETLIFY_SITE_ID` | Netlify → Site configuration → General → Site ID |
+| `NETLIFY_AUTH_TOKEN` | Netlify → User settings → Applications → Personal access tokens |
+
+## Firestore rules
+Still pasted by hand from `firestore.rules` into Firebase → Firestore → Rules (moves to automatic in phase 2).
+
+## Layout
+- `src/index.html` – the layer-farm app (main source)
+- `feedmill-src/`, `patches/`, `build_feedmill.py` – feed mill app
+- `static/` – icons, fonts, manifest, service worker
+- `build.py` – builds everything into `app/` (what Netlify serves)

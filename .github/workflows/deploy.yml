@@ -1,0 +1,49 @@
+name: Build and deploy
+# main branch  -> live site (nsr-poultry-farms.netlify.app)
+# any other branch or a pull request -> a separate test copy with its own address
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: write
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Stamp a new version (phones update themselves)
+        run: sed -i -E "s/nsr-v[0-9]+/nsr-v$((1000 + ${{ github.run_number }}))/" static/sw.js && grep -o "nsr-v[0-9]*" static/sw.js
+      - name: Build
+        run: python3 build.py
+      - name: Check the JavaScript
+        run: |
+          python3 - <<'PY'
+          import re
+          for f in ['app/index.html','app/feedmill/index.html']:
+              s=open(f).read(); open('/tmp/'+f.replace('/','_')+'.js','w').write('\n'.join(re.findall(r'<script>(.*?)</script>',s,re.S)))
+          PY
+          for f in /tmp/app_*.js; do node --check "$f"; done
+      - name: Deploy test copy
+        if: github.ref != 'refs/heads/main'
+        run: npx -y netlify-cli@17 deploy --dir=app --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --alias "test-$(echo ${GITHUB_HEAD_REF:-$GITHUB_REF_NAME} | tr -c 'a-zA-Z0-9' '-' | cut -c1-30)" --message "${{ github.sha }}"
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      - name: Deploy live
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: npx -y netlify-cli@17 deploy --dir=app --prod --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --message "${{ github.sha }} ${{ github.event.head_commit.message }}"
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
