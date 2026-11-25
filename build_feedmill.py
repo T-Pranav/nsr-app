@@ -122,6 +122,15 @@ rep("@media(min-width:861px){.fmmob{display:none!important}}","@media(min-width:
 # publish daily raw-material kg (no prices) for the HR feed mill contract
 rep("if(k=='days'||k=='reg')initF();render()}","if(k=='days'||k=='reg')initF();if(window.rmSyncSoon&&(k=='led'||k=='items'||k=='rmin'))rmSyncSoon();render()}")
 rep("sub('cfg','cfg')}","sub('cfg','cfg');sub('rmin','rmin')}")
+
+# Feed silos (read-only): weights from Poultry Manager, feed produced vs silo refilled
+rep("function regv(){",open('patches/silo.js').read()+"\nfunction regv(){")
+rep("const NAV=[['dash','Dashboard'],['mon','Monitor'],['sale','Sales'],","const NAV=[['dash','Dashboard'],['mon','Monitor'],['silo','Silos'],['sale','Sales'],")
+rep("const TT={dash:['Dashboard','Stock, consumption and alerts at a glance'],","const TT={dash:['Dashboard','Stock, consumption and alerts at a glance'],silo:['Silos','Live silo weights, refills and feed sent'],")
+rep("const IC={sale:","const IC={silo:'<path d=\"M7 3h10v12l-3 4h-4l-3-4z\"/><path d=\"M7 7h10M7 11h10\"/><path d=\"M10 19v2.5M14 19v2.5\"/>',sale:")
+rep("const v={dash:()=>monBanner()+dash(),mon:monv,sale:salev,","const v={dash:()=>monBanner()+dash(),mon:monv,silo:silov,sale:salev,")
+rep(" rv(d){RV=d.v;render()},"," rv(d){RV=d.v;render()},\n silsel(d){SIL.sel=d.v||null;SIL.date='';render();scrollTo(0,0)},")
+rep("document.addEventListener('change',e=>{const t=e.target,d=t.dataset;","document.addEventListener('change',e=>{const t=e.target,d=t.dataset;if(t.id=='sild'){SIL.date=t.value;render();return}")
 os.makedirs('app/feedmill',exist_ok=True)
 try:
   _UPD=UPD.replace('__SWPATH__','../sw.js');_V2=re.search(r"nsr-v\d+",open('static/sw.js').read()).group(0)
