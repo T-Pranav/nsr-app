@@ -37,13 +37,13 @@ jobs:
           for f in /tmp/app_*.js; do node --check "$f"; done
       - name: Deploy test copy
         if: github.ref != 'refs/heads/main'
-        run: npx -y netlify-cli@17 deploy --dir=app --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --alias "test-$(echo ${GITHUB_HEAD_REF:-$GITHUB_REF_NAME} | tr -c 'a-zA-Z0-9' '-' | cut -c1-30)" --message "${{ github.sha }}"
+        run: npx -y netlify-cli@17 deploy --dir=app --functions=netlify/functions --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --alias "test-$(echo ${GITHUB_HEAD_REF:-$GITHUB_REF_NAME} | tr -c 'a-zA-Z0-9' '-' | cut -c1-30)" --message "${{ github.sha }}"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       - name: Deploy live
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        run: npx -y netlify-cli@17 deploy --dir=app --prod --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --message "${{ github.sha }} ${{ github.event.head_commit.message }}"
+        run: npx -y netlify-cli@17 deploy --dir=app --functions=netlify/functions --prod --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --message "${{ github.sha }} ${{ github.event.head_commit.message }}"
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}

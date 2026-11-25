@@ -26,3 +26,9 @@ Still pasted by hand from `firestore.rules` into Firebase → Firestore → Rule
 - `feedmill-src/`, `patches/`, `build_feedmill.py` – feed mill app
 - `static/` – icons, fonts, manifest, service worker
 - `build.py` – builds everything into `app/` (what Netlify serves)
+
+## Live silo weights
+- `netlify/functions/silo-live.mjs` answers `/api/silo-live` for signed-in staff only and holds the Poultry Manager secret.
+- Netlify → Site configuration → Environment variables: `SILO_HOST`, `SILO_CLIENT_ID`, `SILO_CLIENT_SECRET`, `SILO_TENANT` (scope: Functions).
+- It calls Poultry Manager at most once a minute. The hourly history still comes from the silo-sync job in nsr-backup.
+- Functions are only published by this pipeline, not by dragging a zip onto Netlify.
