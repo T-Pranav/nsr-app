@@ -278,6 +278,27 @@ svg.trk{width:100%;height:auto;background:var(--bg);border:1px solid var(--line)
 #login .pad button.okk{background:linear-gradient(145deg,#d3324a,#9c1527);border-color:transparent}
 #login .pad button:active{background:var(--gold);color:#2b1d12;transform:scale(.95)}
 body.ta #login .lg-tag{letter-spacing:.5px;font-size:12px;text-transform:none}
+#login .lg-glow{position:fixed;inset:-20%;pointer-events:none;z-index:0;background:radial-gradient(35% 30% at 20% 20%,rgba(227,195,147,.16),transparent 70%),radial-gradient(30% 28% at 85% 75%,rgba(200,40,58,.18),transparent 70%);animation:lgDrift 18s ease-in-out infinite alternate}
+@keyframes lgDrift{to{transform:translate3d(4%,-3%,0) scale(1.06)}}
+#login .lg-greet{text-align:center;margin:22px 0 6px;animation:lgIn .6s .05s both}
+#login .lg-greet h1{margin:0;font:600 30px "Playfair Display",Georgia,"Noto Sans Tamil",serif;color:#fff;letter-spacing:.2px}
+#login .lg-greet p{margin:6px 0 0;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold)}body.ta #login .lg-greet p{text-transform:none;letter-spacing:.3px}
+#login .av{background:linear-gradient(145deg,hsl(var(--h,34) 62% 78%),hsl(var(--h,34) 48% 56%))!important;box-shadow:0 0 0 3px rgba(255,255,255,.08),0 6px 16px rgba(0,0,0,.35)!important}
+#login .av.xl{width:64px;height:64px;font-size:28px}
+#login .lg-hero{display:flex;align-items:center;gap:16px;width:100%;margin:22px 0 4px;padding:18px;border-radius:24px;color:#fff;text-align:left;font-family:inherit;
+  background:linear-gradient(135deg,rgba(227,195,147,.22),rgba(227,195,147,.06));border:1px solid rgba(227,195,147,.55);box-shadow:0 18px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12);animation:lgIn .55s .1s both}
+#login .lg-hero:active{transform:scale(.985)}#login .lg-hero-t{display:flex;flex-direction:column;flex:1;min-width:0}
+#login .lg-hero-t small{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold)}body.ta #login .lg-hero-t small{text-transform:none}
+#login .lg-hero-t b{font:600 24px "Playfair Display",Georgia,"Noto Sans Tamil",serif;margin:2px 0}#login .lg-hero-t i{font-style:normal;font-size:13px;color:rgba(247,239,227,.7)}
+#login .lg-sec{margin:26px 0 12px;font-size:12.5px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(247,239,227,.65);text-align:center}body.ta #login .lg-sec{text-transform:none;letter-spacing:.3px}
+#login .lg-office{margin-top:26px;border-radius:20px;border:1px solid rgba(227,195,147,.25);background:rgba(255,255,255,.04);overflow:hidden}
+#login .lg-office summary{list-style:none;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#f6e3c6}
+#login .lg-office summary{text-align:left}#login .lg-off-t{display:flex;flex-direction:column;line-height:1.25}#login .lg-off-t small{font-weight:500;font-size:12px;color:rgba(247,239,227,.6)}#login .lg-office[open] summary{border-bottom:1px solid rgba(227,195,147,.15);margin-bottom:6px}
+#login .lg-office summary::-webkit-details-marker{display:none}#login .lg-office summary>span:nth-child(2){flex:1}
+#login .lg-office summary .chev{transition:transform .2s}#login .lg-office[open] summary .chev{transform:rotate(90deg)}
+#login .lg-office .lg-form{padding:0 16px 16px}#login .lg-office .lg-form .lg-lbl:first-child{margin-top:4px}
+#login .lg-tile .av{width:54px;height:54px;font-size:22px}#login .lg-tile{padding:18px 8px 14px}
+@media (prefers-reduced-motion:reduce){#login .lg-glow{animation:none}}
 #login .lg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 #login .lg-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px 12px;border-radius:18px;color:#fff;font-family:inherit;text-align:center;
   background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));border:1px solid rgba(227,195,147,.22);animation:lgIn .45s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d,0ms);transition:transform .15s,border-color .2s}
@@ -855,7 +876,7 @@ batchCode:'Batch code',flockAge:'Flock age',shedLat:'Shed latitude',shedLng:'She
 latHelp:'Stand inside the shed and tap "Use my current location", or type the numbers from Google Maps (long-press the shed → copy).',
 assignedSup:'Supervisor',saveShed:'Save {s}',birdsNow:'Birds now',gpsCol:'GPS',badLatLng:'Latitude / longitude must be numbers like 11.2345',
 assignSheds:'Assigned sheds',assignHelp:'Tap sheds to assign or remove. A supervisor with no sheds can see all sheds.',allShedsShort:'All sheds',sheds:'Sheds',
-shedRadius:'Allowed distance from shed (m)',mFromShed:'{d} m from shed',farFromShed:'far from the shed',a_entryFar:'{s}: {n} entered data {d} m away from the shed',stdFeed:'Std feed g',stdBuiltIn:'BV300 standard (Venkateshwara management guide 2023, weeks 19–100) is built in.',lgTag:'Layer Farm Management',lgFoot:'Secure staff login',logoT:'Farm logo',logoHelp:'The NSR logo is built in. Upload a new one here only if you want to change it.',logoPick:'Upload logo',loginAs:'Log in as',lgFind:'Search your name',lgNoMatch:'No name matches.',lgNoPinUsers:'No supervisors or staff added yet. Admin adds them in Setup.',lgOffice:'Office staff · username & password',lgStaffPin:'Staff · tap your name',tapName:'Tap your name',noRoleStaff:'No one added for this role yet. Admin adds users in Setup.',roleSupD:'Mortality, closing stock, photos',roleChkD:'Sales, verify supervisor entries',roleAdminD:'Reports, analysis, setup',catD:'Doubles',catS:'Small',catDirty:'Dirty',catBroken:'Wastage',catLeather:'Leather',
+shedRadius:'Allowed distance from shed (m)',mFromShed:'{d} m from shed',farFromShed:'far from the shed',a_entryFar:'{s}: {n} entered data {d} m away from the shed',stdFeed:'Std feed g',stdBuiltIn:'BV300 standard (Venkateshwara management guide 2023, weeks 19–100) is built in.',lgTag:'Layer Farm Management',lgFoot:'Secure staff login',logoT:'Farm logo',logoHelp:'The NSR logo is built in. Upload a new one here only if you want to change it.',logoPick:'Upload logo',loginAs:'Log in as',lgOfficeT:'Office login',lgOfficeS:'Admin · HR · Management · Feed mill',lgGm:'Good morning',lgGa:'Good afternoon',lgGe:'Good evening',lgContinue:'Continue as',lgNotYou:'Not you? Tap your name',lgFind:'Search your name',lgNoMatch:'No name matches.',lgNoPinUsers:'No supervisors or staff added yet. Admin adds them in Setup.',lgOffice:'Office login · username & password',lgStaffPin:'Staff · tap your name',tapName:'Tap your name',noRoleStaff:'No one added for this role yet. Admin adds users in Setup.',roleSupD:'Mortality, closing stock, photos',roleChkD:'Sales, verify supervisor entries',roleAdminD:'Reports, analysis, setup',catD:'Doubles',catS:'Small',catDirty:'Dirty',catBroken:'Wastage',catLeather:'Leather',
 phDead:'Dead birds',phTable:'Table eggs',phDirty:'Dirty eggs',phBroken:'Wastage eggs',phDamage:'Damaged eggs',
 roleSup:'Supervisor',roleChk:'Administrator',roleAdmin:'Management',
 loginOwner:'Continue as Owner (Admin)',loginFirst:'First-time setup: continue as Admin',whoAreYou:'Who are you? Tap your name.',
@@ -952,7 +973,7 @@ batchCode:'பேட்ச் குறியீடு',flockAge:'மந்த�
 latHelp:'ஷெட்டுக்குள் நின்று "என் தற்போதைய இடம்" அழுத்தவும், அல்லது Google Maps-லிருந்து எண்களை பதியவும்.',
 assignedSup:'மேற்பார்வையாளர்',saveShed:'{s} சேமி',birdsNow:'தற்போதைய கோழிகள்',gpsCol:'GPS',badLatLng:'அட்சரேகை / தீர்க்கரேகை எண்களாக இருக்க வேண்டும் (எ.கா. 11.2345)',
 assignSheds:'ஒதுக்கப்பட்ட ஷெட்கள்',assignHelp:'ஷெட்களை தொட்டு ஒதுக்கவும் அல்லது நீக்கவும். ஷெட் ஒதுக்காவிட்டால் அனைத்தும் தெரியும்.',allShedsShort:'அனைத்து ஷெட்',sheds:'ஷெட்கள்',
-shedRadius:'ஷெட்டிலிருந்து அனுமதி தூரம் (மீ)',mFromShed:'ஷெட்டிலிருந்து {d} மீ',farFromShed:'ஷெட்டிலிருந்து தொலைவில்',a_entryFar:'{s}: {n} ஷெட்டிலிருந்து {d} மீ தொலைவில் பதிவு செய்தார்',stdFeed:'தர தீவனம் கி',stdBuiltIn:'BV300 தர அளவு (வெங்கடேஸ்வரா மேலாண்மை வழிகாட்டி 2023, 19–100 வாரம்) சேர்க்கப்பட்டுள்ளது.',lgTag:'லேயர் பண்ணை மேலாண்மை',lgFoot:'பாதுகாப்பான ஊழியர் உள்நுழைவு',logoT:'பண்ணை லோகோ',logoHelp:'NSR லோகோ ஏற்கனவே உள்ளது. மாற்ற வேண்டுமெனில் மட்டும் புதியதை பதிவேற்றவும்.',logoPick:'லோகோ பதிவேற்று',loginAs:'உள்நுழைய தேர்வு செய்யவும்',lgFind:'உங்கள் பெயரைத் தேடுங்கள்',lgNoMatch:'பெயர் இல்லை.',lgNoPinUsers:'மேற்பார்வையாளர்/பணியாளர் இன்னும் சேர்க்கப்படவில்லை.',lgOffice:'அலுவலகம் · பயனர் பெயர் & கடவுச்சொல்',lgStaffPin:'பணியாளர் · உங்கள் பெயரைத் தொடவும்',tapName:'உங்கள் பெயரை தொடவும்',noRoleStaff:'இந்த பங்கிற்கு இன்னும் யாரும் சேர்க்கப்படவில்லை. நிர்வாகி அமைப்பில் சேர்க்க வேண்டும்.',roleSupD:'இறப்பு, இறுதி இருப்பு, போட்டோ',roleChkD:'விற்பனை, மேற்பார்வையாளர் பதிவை சரிபார்த்தல்',roleAdminD:'அறிக்கை, பகுப்பாய்வு, அமைப்பு',catD:'டபுள்',catS:'சிறிய',catDirty:'அழுக்கு',catBroken:'கழிவு',catLeather:'தோல் முட்டை',
+shedRadius:'ஷெட்டிலிருந்து அனுமதி தூரம் (மீ)',mFromShed:'ஷெட்டிலிருந்து {d} மீ',farFromShed:'ஷெட்டிலிருந்து தொலைவில்',a_entryFar:'{s}: {n} ஷெட்டிலிருந்து {d} மீ தொலைவில் பதிவு செய்தார்',stdFeed:'தர தீவனம் கி',stdBuiltIn:'BV300 தர அளவு (வெங்கடேஸ்வரா மேலாண்மை வழிகாட்டி 2023, 19–100 வாரம்) சேர்க்கப்பட்டுள்ளது.',lgTag:'லேயர் பண்ணை மேலாண்மை',lgFoot:'பாதுகாப்பான ஊழியர் உள்நுழைவு',logoT:'பண்ணை லோகோ',logoHelp:'NSR லோகோ ஏற்கனவே உள்ளது. மாற்ற வேண்டுமெனில் மட்டும் புதியதை பதிவேற்றவும்.',logoPick:'லோகோ பதிவேற்று',loginAs:'உள்நுழைய தேர்வு செய்யவும்',lgOfficeT:'அலுவலக உள்நுழைவு',lgOfficeS:'நிர்வாகி · HR · மேலாண்மை · தீவன ஆலை',lgGm:'காலை வணக்கம்',lgGa:'மதிய வணக்கம்',lgGe:'மாலை வணக்கம்',lgContinue:'தொடரவும்',lgNotYou:'நீங்கள் இல்லையா? உங்கள் பெயரைத் தொடவும்',lgFind:'உங்கள் பெயரைத் தேடுங்கள்',lgNoMatch:'பெயர் இல்லை.',lgNoPinUsers:'மேற்பார்வையாளர்/பணியாளர் இன்னும் சேர்க்கப்படவில்லை.',lgOffice:'அலுவலகம் · பயனர் பெயர் & கடவுச்சொல்',lgStaffPin:'பணியாளர் · உங்கள் பெயரைத் தொடவும்',tapName:'உங்கள் பெயரை தொடவும்',noRoleStaff:'இந்த பங்கிற்கு இன்னும் யாரும் சேர்க்கப்படவில்லை. நிர்வாகி அமைப்பில் சேர்க்க வேண்டும்.',roleSupD:'இறப்பு, இறுதி இருப்பு, போட்டோ',roleChkD:'விற்பனை, மேற்பார்வையாளர் பதிவை சரிபார்த்தல்',roleAdminD:'அறிக்கை, பகுப்பாய்வு, அமைப்பு',catD:'டபுள்',catS:'சிறிய',catDirty:'அழுக்கு',catBroken:'கழிவு',catLeather:'தோல் முட்டை',
 phDead:'இறந்த கோழிகள்',phTable:'டேபிள் முட்டை',phDirty:'அழுக்கு முட்டை',phBroken:'கழிவு முட்டை',phDamage:'சேதமான முட்டை',
 roleSup:'மேற்பார்வையாளர்',roleChk:'நிர்வாகி',roleAdmin:'மேலாண்மை',
 loginOwner:'உரிமையாளராக தொடரவும் (நிர்வாகி)',loginFirst:'முதல் அமைப்பு: நிர்வாகியாக தொடரவும்',whoAreYou:'நீங்கள் யார்? உங்கள் பெயரை தொடவும்.',
@@ -1565,19 +1586,28 @@ async function auditLoad(){const since=Date.now()-30*864e5;if(db){const q=await 
 function showLogin(sel){const el=$('#login');el.classList.add('show');document.body.classList.add('locked');
   const bind=()=>el.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{setLang(b.dataset.lang);sel==='form'?lgForm(S.lgCtx):showLogin(sel)});
   /* one screen: staff tap their name (PIN); office staff use username + password. Role and branch come from the user's record. */
-  S.lgView='all';let lastMode='';try{lastMode=localStorage.getItem('lf-lastmode')||''}catch(e){}
+  S.lgView='all';let lastMode='',lastPin='';try{lastMode=localStorage.getItem('lf-lastmode')||'';lastPin=localStorage.getItem('lf-lastpin')||''}catch(e){}
   const pinU=S.staff.filter(x=>x.role==='sup'||x.role==='emp').sort((a,b)=>(a.role===b.role?0:a.role==='sup'?-1:1)||String(a.name).localeCompare(String(b.name)));
   const q=(S.lgQ||'').trim().toLowerCase(),shown=q?pinU.filter(x=>String(x.name).toLowerCase().includes(q)):pinU;
-  const grid=`<div class="lg-h sm">${LGI.user}<span>${t('tapName')}</span></div>
+  const hr=new Date().getHours(),greet=t(hr<12?'lgGm':hr<17?'lgGa':'lgGe');
+  const dline=new Date().toLocaleDateString(LANG==='ta'?'ta-IN':'en-IN',{weekday:'long',day:'numeric',month:'long'});
+  const me=lastMode!=='form'&&!q?pinU.find(x=>x.id===lastPin):null;
+  const av=(x,cls)=>`<span class="av ${cls||''}" style="--h:${lgHue(x.name)}">${esc((x.name||'?').trim()[0].toUpperCase())}</span>`;
+  const hero=me?`<button class="lg-hero" data-u="${me.id}">${av(me,'xl')}<span class="lg-hero-t"><small>${t('lgContinue')}</small><b>${esc(me.name)}</b><i>${roleLabel(me.role)}</i></span><span class="chev">${LGI.chev}</span></button>`:'';
+  const grid=`<div class="lg-sec">${t(me?'lgNotYou':'tapName')}</div>
       ${pinU.length>8?`<div class="lg-in lg-find"><span>${LGI.user}</span><input id="lgFind" placeholder="${t('lgFind')}" value="${esc(S.lgQ||'')}" autocomplete="off"></div>`:''}
-      <div class="lg-grid">${shown.map((x,i)=>`<button class="lg-tile" style="--d:${Math.min(i,12)*40+60}ms" data-u="${x.id}"><span class="av">${esc((x.name||'?').trim()[0].toUpperCase())}</span><b>${esc(x.name)}</b><small>${roleLabel(x.role)}</small></button>`).join('')}</div>
+      <div class="lg-grid">${shown.filter(x=>!me||x.id!==me.id).map((x,i)=>`<button class="lg-tile" style="--d:${Math.min(i,12)*40+60}ms" data-u="${x.id}">${av(x)}<b>${esc(x.name)}</b><small>${roleLabel(x.role)}</small></button>`).join('')}</div>
       ${!pinU.length?`<div class="lg-empty">${S.staffLoaded?t('lgNoPinUsers'):t('loadingNames')}</div>`:q&&!shown.length?`<div class="lg-empty">${t('lgNoMatch')}</div>`:''}`;
-  const form=`<div class="lg-or"><i></i><span>${t('lgOffice')}</span><i></i></div>${lgFormHtml('any')}`;
-  el.innerHTML=`<div class="lg-box">${lgTop(true)}${lastMode==='form'?form+`<div class="lg-or"><i></i><span>${t('lgStaffPin')}</span><i></i></div>`+grid:grid+form}${lgFoot()}</div>`;
+  const office=`<details class="lg-office" ${lastMode==='form'||lgOwnerOK()?'open':''}><summary><span class="ri sm">${LGI.lock}</span><span class="lg-off-t"><b>${t('lgOfficeT')}</b><small>${t('lgOfficeS')}</small></span><span class="chev">${LGI.chev}</span></summary>${lgFormHtml('any')}</details>`;
+  el.innerHTML=`<div class="lg-glow" aria-hidden="true"></div><div class="lg-box">${lgTop(true)}
+    <div class="lg-greet"><h1>${greet}</h1><p>${dline}</p></div>
+    ${lastMode==='form'?office+grid:hero+grid+office}${lgFoot()}</div>`;
   el.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>pinPad(staffById(b.dataset.u)));
   const f=$('#lgFind');if(f)f.oninput=()=>{S.lgQ=f.value;const pos=f.selectionStart;showLogin();const g=$('#lgFind');if(g){g.focus();try{g.setSelectionRange(pos,pos)}catch(e){}}};
+  const od=el.querySelector('.lg-office');if(od)od.ontoggle=()=>{if(od.open)setTimeout(()=>{const u=$('#lgU');u&&(u.value?$('#lgP'):u).focus();od.scrollIntoView({behavior:'smooth',block:'start'})},60)};
   lgFormBind('any');
   bind()}
+const lgHue=n=>{let h=0;for(const c of String(n||''))h=(h*31+c.charCodeAt(0))%360;return [28,8,350,40,190,160,265,15].at(h%8)};
 function lgFormHtml(ctx){let last='';try{last=localStorage.getItem('lf-lastuser-'+ctx)||''}catch(e){}
   return `<form class="lg-form" id="lgForm" autocomplete="on">
     <label class="lg-lbl" for="lgU">${t('username')}</label>
@@ -1609,7 +1639,7 @@ function lgForm(ctx){S.lgView='form';const el=$('#login');el.classList.add('show
   el.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{setLang(b.dataset.lang);lgForm(ctx)})}
 function pinPad(st){if(!st)return;S.lgView='pin';let pin='',keep=true;const el=$('#login');let shake=false;
   const draw=()=>{el.innerHTML=`<div class="lg-box">${lgTop(true)}
-    <div class="lg-pinhead"><span class="av big">${esc((st.name||'?').trim()[0].toUpperCase())}</span><div class="lg-pinname">${esc(st.name)}</div>
+    <div class="lg-pinhead"><span class="av big" style="--h:${lgHue(st.name)}">${esc((st.name||'?').trim()[0].toUpperCase())}</span><div class="lg-pinname">${esc(st.name)}</div>
     <div class="lg-sel"><span class="ri sm">${LGI[st.role]}</span>${t(ROLES.find(r=>r[0]===st.role)[1])}</div></div>
     <div class="lg-h sm">${LGI.lock}<span>${t('enterPin')}</span></div>
     <div class="pin ${shake?'shake':''}">${[...Array(Math.max(4,pin.length))].map((_,i)=>`<span class="${i<pin.length?'on':''}"></span>`).join('')}</div>
@@ -1619,7 +1649,7 @@ function pinPad(st){if(!st)return;S.lgView='pin';let pin='',keep=true;const el=$
     el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(navigator.vibrate)try{navigator.vibrate(8)}catch(e){}
       if(k==='del')pin=pin.slice(0,-1);else if(k==='ok')return check();else if(pin.length<6)pin+=k;draw();if(pin.length>=4&&(S.secured&&SEC.on()?pin.length===(num(st.pl)||String(st.pin||'').length):pin===String(st.pin||'')))check()});
     $('#pinBack').onclick=()=>showLogin()};
-  let busy=false;const check=async()=>{if(busy)return;busy=true;const ok=await checkSecret(st,pin,keep);busy=false;if(ok){try{localStorage.setItem('lf-lastmode','pin')}catch(e){}setSess(st.id,keep);if(SEC.on()&&S.secured)return void location.reload();afterLogin()}else{pin='';shake=true;draw();toast(t('wrongPin'))}};draw()}
+  let busy=false;const check=async()=>{if(busy)return;busy=true;const ok=await checkSecret(st,pin,keep);busy=false;if(ok){try{localStorage.setItem('lf-lastmode','pin');localStorage.setItem('lf-lastpin',st.id)}catch(e){}setSess(st.id,keep);if(SEC.on()&&S.secured)return void location.reload();afterLogin()}else{pin='';shake=true;draw();toast(t('wrongPin'))}};draw()}
 function afterLogin(){if(!applySession())return showLogin();if(!S.user.role){if(S.user.mill&&HOSTED())return void location.replace('feedmill/');setSess(null);S.user=null;toast(t('lgNoBranch'));return showLogin()}V.entry.mode=null;V.entry.date=null;$('#login').classList.remove('show');document.body.classList.remove('locked');
   buildNav();location.hash='';route();renderWho();toast(t('welcomeUser',{n:S.user.name}))}
 function logout(){PNL.key=null;PNL.docs={};PNL.cost={};setSess(null);S.user=null;S.me=null;hideModal();if(SEC.on()&&SEC.authed()){SEC.out();return}showLogin()}
