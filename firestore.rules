@@ -46,6 +46,8 @@ service cloud.firestore {
 
     // P&L (also encrypted in the app) – Management only
     // bird & egg weights: supervisors, Administrator and Management enter; office deletes
+    // feed silos: copied hourly by the GitHub job (server account, bypasses rules); staff read only
+    match /silo/{id}           { allow read: if isStaff(); allow write: if false; }
     match /wt/{id}             { allow read, create, update: if isLayer(); allow delete: if isOffice(); }
     // SOP – sales order projection: Management and Administrator
     match /sop/{id}            { allow read, write: if isOffice(); }

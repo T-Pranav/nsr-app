@@ -77,7 +77,8 @@ body.ta .task .ti{font-size:21px}
 .tbl input{min-height:40px;padding:7px 8px;font-size:14px}
 .scroll{overflow-x:auto}
 .pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px}
-.pill.r{background:var(--red-soft);color:var(--red)} .pill.a{background:var(--amber-soft);color:var(--amber)} .pill.g{background:#e3f0e3;color:var(--ok)}
+.pill.r{background:var(--red-soft);color:var(--red)}
+.silo-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:4px}.silo-c{display:flex;gap:12px;align-items:center;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;color:var(--ink);font:inherit;cursor:pointer;width:100%}.silo-c:hover{border-color:var(--ok)}.silo-i{flex:1;min-width:0;display:grid;gap:3px}.silo-n{font-weight:700}.silo-kg{font-size:22px;font-weight:800;letter-spacing:-.3px} .pill.a{background:var(--amber-soft);color:var(--amber)} .pill.g{background:#e3f0e3;color:var(--ok)}
 .item{border-bottom:1px solid var(--line);padding:10px 0} .item:last-child{border-bottom:0}
 .route{font-size:13px;color:var(--muted);margin-top:4px}
 .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
@@ -608,6 +609,7 @@ const IC={
  file:P('<path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/>'),
  target:P('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/>'),
  tag:P('<path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1.4 1.4 0 0 1 0 2l-6.2 6.2a1.4 1.4 0 0 1-2 0z"/><circle cx="8" cy="8" r="1.5"/>'),
+ silo:P('<path d="M7 3h10v12l-3 4h-4l-3-4z"/><path d="M7 7h10M7 11h10"/><path d="M10 19v2.5M14 19v2.5"/>'),
  scale:P('<path d="M12 4v16M7 20h10M5 7h14"/><path d="M5 7l-2.5 6a2.5 2.5 0 0 0 5 0zM19 7l-2.5 6a2.5 2.5 0 0 0 5 0z"/>'),
  users:P('<circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 5a3.2 3.2 0 0 1 0 6.2M18 14.3A6 6 0 0 1 21 20"/>'),
  user:P('<circle cx="12" cy="8" r="3.8"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>'),
@@ -628,7 +630,7 @@ const EMO={'📋':'report','✏️':'edit','✏':'edit','📈':'up','📉':'down
  '✕':'x','📄':'file','🎯':'target','🏷️':'tag','🏷':'tag','⚖️':'scale','⚖':'scale','👥':'users','👤':'user','🗂️':'folder','🗂':'folder','🖼️':'image','🖼':'image','🧾':'receipt',
  '🚪':'logout','👋':'hand','➡️':'arrow'};
 const DOTS={'🟢':'#3c9a52','🔴':'#c8283a','🟠':'#d98a1c','⚫':'#2b2b2b','🟤':'#8a5a3b','⬜':'#e8e1d4'};
-Object.assign(EMO,{'🔒':'lock','🔐':'lock','⬇':'download','🖨':'print','🤖':'spark','🪪':'idcard','🩺':'heart','⚡':'spark','🧮':'bars','🐣':'hen','🕘':'clock','✍':'edit','⏫':'upload'});
+Object.assign(EMO,{'🛢':'silo','🛢️':'silo','🔒':'lock','🔐':'lock','⬇':'download','🖨':'print','🤖':'spark','🪪':'idcard','🩺':'heart','⚡':'spark','🧮':'bars','🐣':'hen','🕘':'clock','✍':'edit','⏫':'upload'});
 const EMO_RE=new RegExp('('+[...Object.keys(EMO),...Object.keys(DOTS)].sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\uFE0F?','gu');
 function iconize(root){if(!root||root.nodeType!==1)return;
   const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentNode;if(!p||/^(SCRIPT|STYLE|TEXTAREA|OPTION|TITLE)$/.test(p.nodeName)||p.closest('svg,.no-ico'))return NodeFilter.FILTER_REJECT;
@@ -1655,13 +1657,13 @@ function afterLogin(){if(!applySession())return showLogin();if(!S.user.role){if(
 function logout(){PNL.key=null;PNL.docs={};PNL.cost={};setSess(null);S.user=null;S.me=null;hideModal();if(SEC.on()&&SEC.authed()){SEC.out();return}showLogin()}
 
 /* ================= NAV ================= */
-const NAVS={sup:['entry','myrep','checkin','wt','health'],chk:['entry','report','sop','batch','track','summary','analysis','frep','wt','health','hr'],admin:['report','entry','sop','batch','track','summary','analysis','frep','wt','pnl','hr','health','settings'],hr:['hr'],emp:['duty']};
-const NAVINFO={frep:['egg','nav_frep'],batch:['hen','nav_batch'],wt:['scale','nav_wt'],sop:['truck','nav_sop'],report:['report','nav_report'],entry:['edit','nav_entry'],summary:['up','nav_summary'],analysis:['bars','nav_analysis'],track:['compass','nav_track'],checkin:['pin','nav_checkin'],health:['syringe','nav_health'],settings:['gear','nav_settings'],myrep:['report','nav_myrep'],pnl:['lock','nav_pnl'],hr:['users','nav_hr'],duty:['clock','nav_duty']};
+const NAVS={sup:['entry','myrep','checkin','wt','health'],chk:['entry','report','sop','batch','track','summary','analysis','frep','wt','silo','health','hr'],admin:['report','entry','sop','batch','track','summary','analysis','frep','wt','silo','pnl','hr','health','settings'],hr:['hr'],emp:['duty']};
+const NAVINFO={frep:['egg','nav_frep'],batch:['hen','nav_batch'],wt:['scale','nav_wt'],silo:['silo','nav_silo'],sop:['truck','nav_sop'],report:['report','nav_report'],entry:['edit','nav_entry'],summary:['up','nav_summary'],analysis:['bars','nav_analysis'],track:['compass','nav_track'],checkin:['pin','nav_checkin'],health:['syringe','nav_health'],settings:['gear','nav_settings'],myrep:['report','nav_myrep'],pnl:['lock','nav_pnl'],hr:['users','nav_hr'],duty:['clock','nav_duty']};
 /* menu for this user; P&L is added for anyone Management has switched it on for */
 const pnlOk=()=>{if(role()==='admin')return true;const st=S.user&&S.staff&&staffById(S.user.id);return !!((st&&st.pnl)||(S.user&&S.user.pnl))};
 function navOf(){const r=role();const L=[...(NAVS[r]||[])];if(r!=='admin'&&['chk','sup','hr'].includes(r)&&pnlOk()&&!L.includes('pnl')){const i=L.indexOf('hr');L.splice(i>=0?i:L.length,0,'pnl')}return L}
 /* side menu groups (big screens): a header that opens/closes its items; the bottom bar on phones stays one row */
-const NAVGROUPS=[['grpDaily','report',['report','entry','myrep','checkin','summary','analysis','frep','wt','health']],['grpFlock','hen',['batch','sop']],['grpPeople','users',['track','hr','duty']],['grpFin','lock',['pnl']],['grpSetup','gear',['settings']]];
+const NAVGROUPS=[['grpDaily','report',['report','entry','myrep','checkin','summary','analysis','frep','wt','silo','health']],['grpFlock','hen',['batch','sop']],['grpPeople','users',['track','hr','duty']],['grpFin','lock',['pnl']],['grpSetup','gear',['settings']]];
 function navCl(){try{return JSON.parse(localStorage.getItem('lf-navc')||'{}')}catch(e){return{}}}
 function buildNav(){const r=role();const list=navOf(),cl=navCl(),here=(location.hash||'').slice(1);
   const link=v=>`<a href="#${v}" data-v="${v}"><span class="ic">${IC[NAVINFO[v][0]]}</span><span>${t(v==='entry'&&r!=='sup'?'nav_verify':NAVINFO[v][1])}</span></a>`;
@@ -3474,6 +3476,75 @@ async function wtImportSheet(set){let n=0;const by=S.me||'',ts=Date.now();
   for(const [d,v1,v2,e1,e2,note] of set.rows){const ad=Math.round((new Date(d+'T12:00:00')-new Date(set.hatch+'T12:00:00'))/864e5);
     for(const [sh,bw,ew] of [[set.sheds[0],v1,e1],[set.sheds[1],v2,e2]]){const id=d+'_'+sh;if(S.wt[id])continue;const o={date:d,sh,bw,ad,by,ts,src:set.id};if(ew)o.ew=ew;if(note)o.note=note;await wtPut(id,o);n++}}
   audit('wt','import '+set.label,n+' weights');return n}
+
+/* ===== Feed silos – weights copied hourly from Poultry Manager by the GitHub job (silo-sync). The API secret never reaches phones. ===== */
+let siloW=false;
+function siloWatch(){if(siloW)return;siloW=true;S.siloD=S.siloD||{};
+  if(db){db.doc('silo/now').onSnapshot(s=>{S.siloNow=s.exists?s.data():null;refresh()},()=>{siloW=false});
+    db.collection('silo').where('date','>=',addDays(today(),-35)).onSnapshot(s=>{const o={};s.docs.forEach(x=>{const d=x.data();if(d.date)o[d.date]=d});S.siloD=o;refresh()},()=>{});
+    db.doc('settings/silo').onSnapshot(s=>{S.siloCfg=s.exists?s.data():{};refresh()},()=>{});return}
+  const L=lsGet().silo||{};S.siloNow=L.now||null;S.siloD={};for(const k in L)if(k.startsWith('d_'))S.siloD[L[k].date]=L[k];S.siloCfg=(lsGet().settings||{}).silo||{}}
+const siloList=()=>((S.siloNow||{}).silos||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),'en',{numeric:true}));
+const siloC=id=>((S.siloCfg||{}).map||{})[id]||{};
+const siloDay=(id,d)=>(((S.siloD||{})[d]||{}).s||{})[id]||null;
+const siloT=kg=>kg==null?'–':kg>=1000?(kg/1000).toFixed(2)+' t':fmtN(kg)+' kg';
+function siloAvg(id){const a=[];for(let i=1;i<=7;i++){const x=siloDay(id,addDays(today(),-i));if(x&&x.n)a.push(num(x.u))}return a.length?a.reduce((p,c)=>p+c,0)/a.length:0}
+function siloStale(x){return !x.la||Date.now()-Date.parse(x.la)>3*36e5}
+function siloState(x){const c=siloC(x.id),kg=num(x.kg),avg=siloAvg(x.id),left=avg>0?kg/avg:null;
+  const low=(c.low&&kg<=num(c.low))||(left!=null&&left<1.5);return {c,kg,avg,left,low,warn:!low&&left!=null&&left<3,stale:siloStale(x),pct:num(c.cap)>0?Math.max(0,Math.min(100,kg/num(c.cap)*100)):null}}
+function siloTank(st){const p=st.pct==null?Math.min(100,st.avg>0?st.left/7*100:60):st.pct,col=st.low?'var(--red)':st.warn?'var(--amber)':'var(--ok)',h=Math.round(64*p/100);
+  return `<svg viewBox="0 0 44 92" width="44" height="92" aria-hidden="true"><path d="M4 6h36v66l-10 14H14L4 72z" fill="none" stroke="var(--line)" stroke-width="2.5"/><rect x="6.5" y="${70-h}" width="31" height="${h}" rx="3" fill="${col}" opacity=".85"/><path d="M15 86v5M29 86v5" stroke="var(--line)" stroke-width="2.5"/></svg>`}
+function siloShedUse(d){const o={};siloList().forEach(x=>{const sh=siloC(x.id).sh,y=siloDay(x.id,d);if(sh&&y&&y.n){o[sh]=(o[sh]||0)+num(y.u)}});return o}
+function siloLine(x,d){const y=siloDay(x.id,d);if(!y||!y.n)return `<div class="muted" style="padding:18px 0">${t('siloNoDay')}</div>`;
+  const last=d===today()?new Date().getHours():23,pts=[[0,y.o]];let v=y.o;for(let i=0;i<=last;i++){if(y.h&&y.h[i]!=null)v=y.h[i];pts.push([i+1,v])}
+  const mx=Math.max(...pts.map(p=>p[1]),num(siloC(x.id).cap))*1.08||1,W=600,H=170,X=h=>36+h/24*(W-62),Y=k=>H-22-(k/mx)*(H-34);
+  const ax=[0,6,12,18,24].map(h=>`<text x="${X(h)}" y="${H-6}" font-size="11" text-anchor="middle" fill="var(--muted)">${String(h).padStart(2,'0')}:00</text><line x1="${X(h)}" x2="${X(h)}" y1="10" y2="${H-22}" stroke="var(--line)" stroke-width=".6"/>`).join('');
+  const yl=[0,.5,1].map(f=>`<text x="26" y="${Y(mx/1.08*f)+4}" font-size="10" text-anchor="end" fill="var(--muted)">${(mx/1.08*f/1000).toFixed(1)}t</text>`).join('');
+  const path=pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img" aria-label="${t('siloChart')}">${ax}${yl}<path d="${path} L${X(pts[pts.length-1][0])} ${Y(0)} L${X(0)} ${Y(0)}Z" fill="var(--ok)" opacity=".10"/><path d="${path}" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linejoin="round"/></svg>`}
+function siloBars(id,end){const D=[];for(let i=13;i>=0;i--)D.push(addDays(end,-i));const v=D.map(d=>{const y=siloDay(id,d);return y&&y.n?num(y.u):null}),mx=Math.max(1,...v.map(x=>x||0)),W=600,H=150,bw=(W-40)/14;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img" aria-label="${t('siloUse14')}">${D.map((d,i)=>{const h=v[i]==null?0:(v[i]/mx)*(H-40),x=30+i*bw,f=(siloDay(id,d)||{}).fills;
+    return `<rect x="${x+bw*.18}" y="${H-22-h}" width="${bw*.64}" height="${Math.max(h,v[i]==null?0:1)}" rx="3" fill="${d===today()?'var(--amber)':'var(--ok)'}" opacity=".85"><title>${fmtDate(d)}: ${v[i]==null?t('siloNoData'):fmtN(v[i])+' kg'}${f?' · '+t('siloRefill'):''}</title></rect>${f?`<text x="${x+bw/2}" y="${H-26-h}" font-size="11" text-anchor="middle">⬆</text>`:''}<text x="${x+bw/2}" y="${H-6}" font-size="10" text-anchor="middle" fill="var(--muted)">${d.slice(8)}</text>`}).join('')}</svg>`}
+V.silo={sel:null,date:null,
+mount(el){this.el=el;siloWatch();this.draw()},
+update(){if(this.el&&document.body.contains(this.el)&&!(document.activeElement&&this.el.contains(document.activeElement)&&['INPUT','SELECT'].includes(document.activeElement.tagName)))this.draw()},
+draw(){const el=this.el,L=siloList(),N=S.siloNow,adm=role()==='admin';
+  if(!N||!L.length){el.innerHTML=`<div class="card"><h2>🛢 ${t('siloTitle')}</h2><div class="muted">${t('siloWait')}</div></div>${adm?this.setup(L):''}`;this.bind();return}
+  const x=this.sel!=null&&L.find(s=>String(s.id)===String(this.sel));if(x){this.detail(x);return}
+  const T=today(),Y=addDays(T,-1),sts=L.map(s=>[s,siloState(s)]),tot=L.reduce((a,s)=>a+num(s.kg),0),uT=L.reduce((a,s)=>a+num((siloDay(s.id,T)||{}).u),0),uY=L.reduce((a,s)=>a+num((siloDay(s.id,Y)||{}).u),0),nLow=sts.filter(z=>z[1].low).length;
+  const cards=sts.map(([s,st])=>{const td=siloDay(s.id,T)||{};return `<button class="silo-c" data-silo="${s.id}">${siloTank(st)}<div class="silo-i"><div class="silo-n">${esc(s.name)}${st.c.sh?` <span class="pill">${st.c.sh}</span>`:''}</div>
+    <div class="silo-kg">${siloT(s.kg)}${st.pct!=null?` <span class="tiny muted">${Math.round(st.pct)}%</span>`:''}</div>
+    <div class="tiny muted">${t('siloUsedT')} ${td.n?fmtN(td.u)+' kg':'–'}${st.left!=null?' · '+t('siloLeft',{d:f1(st.left)}):''}</div>
+    <div>${st.low?`<span class="pill r">${t('siloLow')}</span> `:st.warn?`<span class="pill a">${t('siloSoon')}</span> `:''}${st.stale?`<span class="pill a">${t('siloStale')}</span> `:''}${td.fills?`<span class="pill g">⬆ ${t('siloRefill')}</span>`:''}</div></div></button>`}).join('');
+  const sh=siloShedUse(Y),cmp=Object.keys(sh).sort((a,b)=>SHEDS.indexOf(a)-SHEDS.indexOf(b)).map(k=>{const e=num(((S.calc||{})[Y]||{})[k]&&S.calc[Y][k].feed),dif=e?(e-sh[k])/sh[k]*100:null,bad=dif!=null&&Math.abs(dif)>10;
+    return `<tr><td>${k}</td><td class="n">${fmtN(sh[k])}</td><td class="n">${e?fmtN(e):'–'}</td><td class="n" ${bad?'style="color:var(--red);font-weight:700"':''}>${dif==null?'–':(dif>0?'+':'')+f1(dif)+'%'}</td></tr>`}).join('');
+  el.innerHTML=`<div class="card"><h2>🛢 ${t('siloTitle')}</h2><div class="muted">${t('siloUpd',{t:fmtTime(N.at)})}</div>
+    <div class="kpis" style="margin-top:10px">${kpi(t('siloIn'),siloT(tot),t('siloN',{n:L.length}))}${kpi(t('siloUsedT'),siloT(uT),t('siloSoFar'))}${kpi(t('siloUsedY'),siloT(uY),fmtDate(Y))}${kpi(t('siloLowK'),nLow,nLow?'⚠':'✓',nLow?'var(--red)':'var(--ok)')}</div>
+    <div class="silo-g">${cards}</div></div>
+    ${cmp?`<div class="card"><h3 class="rep-title">${t('siloCmp')} – ${fmtDate(Y)}</h3><div class="tiny muted">${t('siloCmpH')}</div><div style="overflow-x:auto"><table class="tbl"><tr><th>${t('shed')}</th><th class="n">${t('siloMeas')}</th><th class="n">${t('siloEnt')}</th><th class="n">${t('siloDiff')}</th></tr>${cmp}</table></div></div>`:''}
+    ${adm?this.setup(L):''}`;this.bind()},
+detail(x){const el=this.el,d=this.date||today(),y=siloDay(x.id,d)||{},st=siloState(x),sh=st.c.sh,ent=sh?num(((S.calc||{})[d]||{})[sh]&&S.calc[d][sh].feed):0;
+  const rows=[];for(let i=0;i<14;i++){const dd=addDays(d,-i),z=siloDay(x.id,dd);if(z&&z.n)rows.push(`<tr><td>${fmtDate(dd)}</td><td class="n">${fmtN(z.o)}</td><td class="n">${z.f?'+'+fmtN(z.f):'–'}</td><td class="n"><b>${fmtN(z.u)}</b></td><td class="n">${fmtN(z.c)}</td></tr>`)}
+  el.innerHTML=`<div class="card"><div class="flex"><button class="ghost" id="siBack">← ${t('siloAll')}</button></div>
+    <h2 style="margin-top:8px">🛢 ${esc(x.name)}${sh?` <span class="pill">${sh}</span>`:''}</h2>
+    <div class="muted">${t('siloNow')}: <b>${siloT(x.kg)}</b>${st.pct!=null?' ('+Math.round(st.pct)+'%)':''}${st.left!=null?' · '+t('siloLeft',{d:f1(st.left)}):''} · ${x.la?t('siloSig',{t:new Date(x.la).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}):t('siloStale')}</div>
+    <div class="row" style="margin-top:10px"><div><label class="f">${t('date')}</label><input type="date" id="siDate" value="${d}" max="${today()}" min="${addDays(today(),-35)}"></div><div></div></div>
+    <div class="kpis">${kpi(t('siloOpen'),y.n?siloT(y.o):'–','')}${kpi(t('siloRefill'),y.f?'+'+siloT(y.f):'–',y.fills?t('siloTimes',{n:y.fills}):'')}${kpi(t('siloUsed'),y.n?siloT(y.u):'–',d===today()?t('siloSoFar'):'')}${kpi(t('siloClose'),y.n?siloT(y.c):'–',y.n?t('siloReads',{n:y.n}):'')}</div>
+    ${siloLine(x,d)}
+    ${sh&&y.n?`<div class="tiny" style="margin-top:6px">${t('siloVs',{sh,e:ent?fmtN(ent)+' kg':'–',m:fmtN(y.u)+' kg'})}${ent&&y.u&&Math.abs(ent-y.u)/y.u>.1?` <span class="pill r">${t('siloChk')}</span>`:''}</div>`:''}</div>
+    <div class="card"><h3 class="rep-title">${t('siloUse14')}</h3>${siloBars(x.id,d)}
+    ${rows.length?`<div style="overflow-x:auto"><table class="tbl"><tr><th>${t('date')}</th><th class="n">${t('siloOpen')}</th><th class="n">${t('siloRefill')}</th><th class="n">${t('siloUsed')}</th><th class="n">${t('siloClose')}</th></tr>${rows.join('')}</table></div>`:''}</div>`;
+  el.querySelector('#siBack').onclick=()=>{this.sel=null;this.draw();scrollTo(0,0)};
+  el.querySelector('#siDate').onchange=e=>{this.date=e.target.value||today();this.draw()}},
+setup(L){const m=(S.siloCfg||{}).map||{};
+  return `<div class="card"><h3 class="rep-title">⚙️ ${t('siloSet')}</h3><div class="tiny muted">${t('siloSetH')}</div>${L.length?`<div style="overflow-x:auto"><table class="tbl"><tr><th>${t('siloName')}</th><th>${t('shed')}</th><th>${t('siloCap')}</th><th>${t('siloLowA')}</th></tr>
+    ${L.map(s=>{const c=m[s.id]||{};return `<tr><td>${esc(s.name)}</td><td><select data-ssh="${s.id}"><option value="">–</option>${SHEDS.map(k=>`<option ${c.sh===k?'selected':''}>${k}</option>`).join('')}</select></td><td><input type="number" inputmode="numeric" data-scap="${s.id}" value="${c.cap||''}" style="width:90px"></td><td><input type="number" inputmode="numeric" data-slow="${s.id}" value="${c.low||''}" style="width:90px"></td></tr>`}).join('')}</table></div>
+    <button class="wide" id="siSave" style="margin-top:10px">💾 ${t('siloSaveSet')}</button>`:''}</div>`},
+bind(){const el=this.el;el.querySelectorAll('[data-silo]').forEach(b=>b.onclick=()=>{this.sel=b.dataset.silo;this.date=today();this.draw();scrollTo(0,0)});
+  const sv=el.querySelector('#siSave');if(sv)sv.onclick=async()=>{const map={};siloList().forEach(s=>{const g=a=>el.querySelector(`[${a}="${s.id}"]`),sh=g('data-ssh').value,cap=num(g('data-scap').value),low=num(g('data-slow').value);if(sh||cap||low)map[s.id]={sh,cap,low}});
+    try{await putSetting('silo',{map});S.siloCfg={map};toast(t('siloSaved'))}catch(e){console.error(e);toast(t('saveFail'))}}}};
+Object.assign(I18N.en,{nav_silo:'Silos',siloTitle:'Feed silos',siloWait:'Waiting for the first reading from Poultry Manager. The hourly job copies the silo weights here once its secrets are added.',siloUpd:'Updated {t} · refreshes every hour',siloIn:'Feed in silos',siloN:'{n} silos',siloUsedT:'Used today',siloUsedY:'Used yesterday',siloSoFar:'so far',siloLowK:'Low silos',siloLeft:'≈ {d} days left',siloLow:'Low – refill',siloSoon:'Refill soon',siloStale:'No signal',siloRefill:'Refilled',siloCmp:'Silo vs entered feed',siloCmpH:'Feed used by the silo scale compared with the feed the supervisor entered. More than 10% apart is shown in red.',siloMeas:'Silo (kg)',siloEnt:'Entered (kg)',siloDiff:'Difference',siloAll:'All silos',siloNow:'Now',siloSig:'last signal {t}',siloOpen:'Opening',siloUsed:'Used',siloClose:'Closing',siloTimes:'{n}×',siloReads:'{n} readings',siloVs:'{sh}: supervisor entered {e} · silo measured {m}',siloChk:'Check',siloUse14:'Daily use – 14 days',siloChart:'Silo weight through the day',siloNoDay:'No readings for this day.',siloNoData:'no data',siloSet:'Silo setup',siloSetH:'Link each silo to its shed. Capacity shows the fill %. The low alert warns when the silo falls below that weight (it also warns when less than 1.5 days of feed is left).',siloName:'Silo',siloCap:'Capacity (kg)',siloLowA:'Low alert (kg)',siloSaveSet:'Save silo setup',siloSaved:'✓ Silo setup saved'});
+Object.assign(I18N.ta,{nav_silo:'சைலோ',siloTitle:'தீவன சைலோ',siloWait:'Poultry Manager-இலிருந்து முதல் அளவீட்டுக்காக காத்திருக்கிறது.',siloUpd:'{t} புதுப்பிக்கப்பட்டது · ஒவ்வொரு மணி நேரமும்',siloIn:'சைலோவில் தீவனம்',siloN:'{n} சைலோ',siloUsedT:'இன்று பயன்பாடு',siloUsedY:'நேற்று பயன்பாடு',siloSoFar:'இதுவரை',siloLowK:'குறைந்த சைலோ',siloLeft:'≈ {d} நாள் மீதம்',siloLow:'குறைவு – நிரப்பவும்',siloSoon:'விரைவில் நிரப்பவும்',siloStale:'சிக்னல் இல்லை',siloRefill:'நிரப்பப்பட்டது',siloCmp:'சைலோ vs பதிந்த தீவனம்',siloCmpH:'சைலோ எடை அளவு vs மேற்பார்வையாளர் பதிந்த தீவனம். 10%-க்கு மேல் வித்தியாசம் சிவப்பில்.',siloMeas:'சைலோ (கிலோ)',siloEnt:'பதிந்தது (கிலோ)',siloDiff:'வித்தியாசம்',siloAll:'அனைத்து சைலோ',siloNow:'இப்போது',siloSig:'கடைசி சிக்னல் {t}',siloOpen:'ஆரம்பம்',siloUsed:'பயன்பாடு',siloClose:'முடிவு',siloTimes:'{n}×',siloReads:'{n} அளவீடுகள்',siloVs:'{sh}: பதிந்தது {e} · சைலோ {m}',siloChk:'சரிபார்க்கவும்',siloUse14:'தினசரி பயன்பாடு – 14 நாள்',siloChart:'நாள் முழுவதும் சைலோ எடை',siloNoDay:'இந்த நாளுக்கு அளவீடு இல்லை.',siloNoData:'தரவு இல்லை',siloSet:'சைலோ அமைப்பு',siloSetH:'ஒவ்வொரு சைலோவையும் அதன் ஷெட்டுடன் இணைக்கவும்.',siloName:'சைலோ',siloCap:'கொள்ளளவு (கிலோ)',siloLowA:'குறைவு எச்சரிக்கை (கிலோ)',siloSaveSet:'சேமி',siloSaved:'✓ சேமிக்கப்பட்டது'});
 V.wt={sh:null,
 mount(el){this.el=el;wtWatch();this.draw()},
 update(){if(this.el&&document.body.contains(this.el)&&!(document.activeElement&&this.el.contains(document.activeElement)&&document.activeElement.tagName==='INPUT'))this.draw()},

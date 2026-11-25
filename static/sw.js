@@ -1,5 +1,5 @@
 /* NSR Poultry Farms – offline support. Change VERSION after every update. */
-const VERSION = 'nsr-v95';
+const VERSION = 'nsr-v97';
 const SHELL = ['./', './index.html', './manifest.json', './firebase-config.js',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 self.addEventListener('install', e => {
