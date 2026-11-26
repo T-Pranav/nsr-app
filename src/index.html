@@ -2070,7 +2070,7 @@ chkForm(){
   const dt=$('#eDate').value,sh=this.sh;const x=(S.day[dt]||{})[sh]||{};const sup=x.sup||{},chk=x.chk||null;const v=chk||sup;const c=v.close||{};const st=stateBefore(dt,sh);
   if(!this.lines)this.lines=((chk&&chk.lines&&chk.lines.length)?chk.lines:[{p:''}]).map(l=>({...l}));
   /* the supervisor's figures go straight into the boxes; the checker's own figures win only if the checker saved after the supervisor last sent */
-  const supNew=!!x.sup&&(!chk||num(sup.ts)>num(chk.ts)),has=v=>v!=null&&v!=='',pk=(cv,sv)=>supNew?(has(sv)?sv:cv):(has(cv)&&!(num(cv)===0&&num(sv))?cv:sv),sc=sup.close||{};
+  const supNew=!!x.sup&&(!chk||num(sup.ts)>num(chk.ts)),has=v=>v!=null&&v!=='',pk=(cv,sv)=>supNew?(has(sv)?sv:cv):(has(cv)?cv:sv),sc=sup.close||{};
   const hint=(sv,cv)=>{if(!x.sup||!chk)return'';const shown=pk(cv,sv);if(supNew)return has(cv)&&num(cv)!==num(shown)?`<div class="diff">${t('chkHad')}: ${cv}</div>`:'';return num(sv)!==num(shown)?`<div class="diff">${t('supSaid')}: ${sv??0}</div>`:''};
   const sr=stdRow(sh,dt);
   $('#eBody').innerHTML=`<div class="card"><h2>✅ ${SHED_NAME(sh)}</h2>${shedHeader(sh,dt)}
