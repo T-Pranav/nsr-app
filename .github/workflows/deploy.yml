@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  id-token: write
 concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: true
@@ -15,6 +16,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      HAS_GCP: ${{ secrets.GCP_DEPLOY_PROVIDER != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -31,7 +34,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import re
-          for f in ['app/index.html','app/feedmill/index.html']:
+          for f in ['app/index.html','app/feedmill/index.html','app/vehicles/index.html']:
               s=open(f).read(); open('/tmp/'+f.replace('/','_')+'.js','w').write('\n'.join(re.findall(r'<script>(.*?)</script>',s,re.S)))
           PY
           for f in /tmp/app_*.js; do node --check "$f"; done
@@ -47,3 +50,13 @@ jobs:
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      # database and photo-storage rules go live with the app (keyless sign-in, rules-only account)
+      - name: Sign in to Google (keyless)
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && env.HAS_GCP == 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_DEPLOY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOY_SA }}
+      - name: Publish database and storage rules
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && env.HAS_GCP == 'true'
+        run: npx -y firebase-tools@13 deploy --only firestore:rules,storage --project nsr-poultry-farms --non-interactive
