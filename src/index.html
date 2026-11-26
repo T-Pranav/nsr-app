@@ -1519,7 +1519,13 @@ let lgFails=0,lgLockUntil=0;
 function lgOwnerOK(){return S.isOwner||(!S.secured&&S.staffLoaded&&(S.mode==='local'||HOSTED())&&!S.staff.some(x=>x.role==='admin'))}
 /* views: mods (Layer / Feed mill) → layer roles → supervisor name list + PIN | administrator / management / feed mill → username + password */
 function lgRefresh(){const v=S.lgView;if(v==='pin')return;
-  if(v==='form'||v==='all'){const o=$('#lgOwner');if(o)o.style.display=lgOwnerOK()?'':'none';const w=$('#lgWait');if(w)w.style.display=S.staffLoaded?'none':'';return}
+  if(v==='all'){const a=document.activeElement,typing=a&&a.closest&&a.closest('.lg-office, .lg-find');
+    if(!typing)return showLogin();
+    if(a.closest('.lg-find'))return;
+    const keep=[$('#lgU')&&$('#lgU').value,$('#lgP')&&$('#lgP').value,$('#lgKeep')&&$('#lgKeep').checked,a.id];showLogin();
+    if($('#lgU'))$('#lgU').value=keep[0]||'';if($('#lgP'))$('#lgP').value=keep[1]||'';if($('#lgKeep'))$('#lgKeep').checked=!!keep[2];
+    const od=document.querySelector('.lg-office');if(od)od.open=true;const f=keep[3]&&document.getElementById(keep[3]);if(f)f.focus();return}
+  if(v==='form'){const o=$('#lgOwner');if(o)o.style.display=lgOwnerOK()?'':'none';const w=$('#lgWait');if(w)w.style.display=S.staffLoaded?'none':'';return}
   showLogin(v==='roles'?'layer':v==='list'?'sup':undefined)}
 /* ================= SECURE ACCOUNTS (Firebase hosting) =================
    Each staff member gets their own Firebase login. The PIN/password is checked by Firebase, not by the phone.
@@ -1596,10 +1602,10 @@ function showLogin(sel){const el=$('#login');el.classList.add('show');document.b
   const me=lastMode!=='form'&&!q?pinU.find(x=>x.id===lastPin):null;
   const av=(x,cls)=>`<span class="av ${cls||''}" style="--h:${lgHue(x.name)}">${esc((x.name||'?').trim()[0].toUpperCase())}</span>`;
   const hero=me?`<button class="lg-hero" data-u="${me.id}">${av(me,'xl')}<span class="lg-hero-t"><small>${t('lgContinue')}</small><b>${esc(me.name)}</b><i>${roleLabel(me.role)}</i></span><span class="chev">${LGI.chev}</span></button>`:'';
-  const grid=`<div class="lg-sec">${t(me?'lgNotYou':'tapName')}</div>
+  const grid=`<div id="lgGrid"><div class="lg-sec">${t(me?'lgNotYou':'tapName')}</div>
       ${pinU.length>8?`<div class="lg-in lg-find"><span>${LGI.user}</span><input id="lgFind" placeholder="${t('lgFind')}" value="${esc(S.lgQ||'')}" autocomplete="off"></div>`:''}
       <div class="lg-grid">${shown.filter(x=>!me||x.id!==me.id).map((x,i)=>`<button class="lg-tile" style="--d:${Math.min(i,12)*40+60}ms" data-u="${x.id}">${av(x)}<b>${esc(x.name)}</b><small>${roleLabel(x.role)}</small></button>`).join('')}</div>
-      ${!pinU.length?`<div class="lg-empty">${S.staffLoaded?t('lgNoPinUsers'):t('loadingNames')}</div>`:q&&!shown.length?`<div class="lg-empty">${t('lgNoMatch')}</div>`:''}`;
+      ${!pinU.length?`<div class="lg-empty">${S.staffLoaded?t('lgNoPinUsers'):t('loadingNames')}</div>`:q&&!shown.length?`<div class="lg-empty">${t('lgNoMatch')}</div>`:''}</div>`;
   const office=`<details class="lg-office" ${lastMode==='form'||lgOwnerOK()?'open':''}><summary><span class="ri sm">${LGI.lock}</span><span class="lg-off-t"><b>${t('lgOfficeT')}</b><small>${t('lgOfficeS')}</small></span><span class="chev">${LGI.chev}</span></summary>${lgFormHtml('any')}</details>`;
   el.innerHTML=`<div class="lg-glow" aria-hidden="true"></div><div class="lg-box">${lgTop(true)}
     <div class="lg-greet"><h1>${greet}</h1><p>${dline}</p></div>
