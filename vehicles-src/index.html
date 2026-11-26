@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#141210">
+<link rel="manifest" href="../manifest.json">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<title>Vehicles · NSR Poultry Farms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#e7e4df,#171513);--ink:light-dark(#141210,#ece8e1);--panel:light-dark(#fff,#211e1b);--rule:light-dark(#cfcac2,#3a3531);--mute:light-dark(#6b645c,#a59d93);--brick:light-dark(#c8371e,#ef6a4f);--ok:light-dark(#2f6b3a,#7fc28b);--warn:light-dark(#9a6a00,#e2b453);--bar:light-dark(#141210,#0d0c0b)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Schibsted Grotesk",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(20px,3vw,40px) max(4vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+header{background:var(--bar);color:#ece8e1;padding-top:max(clamp(20px,3vw,40px),env(safe-area-inset-top))!important}
+header .wrap{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:14px;align-items:center}
+.logo{width:46px;height:46px;border-radius:50%;background:#c8371e;display:grid;place-items:center;font-weight:700;font-size:15px;color:#fff;flex:none}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.05;margin:0;text-wrap:balance}
+.sub{color:#b9b1a6;font-size:14px}
+.back{color:#ece8e1;text-decoration:none;border:1px solid #5a534b;border-radius:6px;padding:8px 12px;font-size:14px;white-space:nowrap}
+h2{font-size:22px;margin:0 0 12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));border-top:2px solid var(--ink);border-bottom:1px solid var(--rule)}
+.kpi{padding:14px 16px 14px 0;border-right:1px solid var(--rule)}.kpi:last-child{border-right:0}
+.kpi b{display:block;font-size:clamp(22px,3vw,30px);line-height:1.1;white-space:nowrap}
+.kpi span{font-size:13px;color:var(--mute)}.kpi.hot b{color:var(--brick)}
+nav{display:flex;gap:4px;overflow-x:auto;margin:22px 0 0;border-bottom:2px solid var(--ink)}
+nav a{flex:none;padding:12px 16px;color:var(--ink);text-decoration:none;font-weight:500;border-radius:6px 6px 0 0}
+nav a.on{background:var(--ink);color:var(--bg)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:18px 0 12px}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:16px}
+table{width:100%;border-collapse:collapse;background:var(--panel)}
+th,td{padding:10px 12px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}
+th{font-size:13px;font-weight:500;color:var(--mute);border-bottom:2px solid var(--ink);white-space:nowrap}
+td.n,th.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+tr.click{cursor:pointer}tr.click:hover td{background:light-dark(#f6f3ee,#2a2622)}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid currentColor;white-space:nowrap;margin:1px 2px 1px 0}
+.t-over{color:var(--brick)}.t-due,.t-part{color:var(--warn)}.t-ok,.t-paid{color:var(--ok)}.t-mute{color:var(--mute)}
+.life{height:8px;background:var(--rule);border-radius:4px;overflow:hidden;min-width:80px}.life i{display:block;height:100%;background:var(--ok)}
+.life.due i{background:var(--warn)}.life.over i{background:var(--brick)}
+button,.btn{font:inherit;font-size:15px;min-height:44px;padding:8px 16px;border-radius:6px;border:1px solid var(--ink);background:var(--panel);color:var(--ink);cursor:pointer}
+button.pri{background:var(--brick);border-color:var(--brick);color:#fff;font-weight:500}
+button.sm{min-height:36px;padding:4px 10px;font-size:14px}
+button.del{border-color:var(--brick);color:var(--brick)}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
+input,select,textarea{font:inherit;font-size:16px;width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--rule);border-radius:6px;background:var(--panel);color:var(--ink)}
+label{display:block;font-size:13px;color:var(--mute)}label input,label select,label textarea{margin-top:3px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px}
+fieldset{border:1px solid var(--rule);border-radius:8px;padding:12px;margin:14px 0}legend{font-weight:700;padding:0 6px}
+.ov{position:fixed;inset:0;background:rgb(0 0 0/.45);display:none;z-index:9;overflow-y:auto;padding:max(3vh,10px) 10px}
+.ov.show{display:block}
+.sheet{max-width:980px;margin:0 auto;background:var(--bg);border-radius:10px;padding:clamp(16px,3vw,28px);border-top:6px solid var(--brick)}
+.shead{display:flex;justify-content:space-between;gap:12px;align-items:start;margin-bottom:14px}
+.sec{margin-top:24px}.sec h3{font-size:18px;margin:0 0 8px;border-bottom:2px solid var(--ink);padding-bottom:4px}
+dl.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 16px;margin:0}
+dl.facts dt{font-size:13px;color:var(--mute)}dl.facts dd{margin:0;font-weight:500}
+.big{font-size:clamp(24px,4vw,34px);font-weight:700;line-height:1.1;white-space:nowrap}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.inline{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:10px;align-items:end;margin-top:10px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}.chips button{flex:none}
+.chips button.on{background:var(--ink);color:var(--bg)}
+.empty{padding:28px;text-align:center;color:var(--mute);background:var(--panel);border:1px dashed var(--rule);border-radius:8px}
+.note{font-size:13px;color:var(--mute);margin-top:8px}
+.ptab td{padding:6px 4px;border:0}.ptab input{min-height:40px;padding:6px 8px}
+.bills{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.thumb{padding:0;width:56px;height:56px;min-height:0;overflow:hidden;border-radius:6px}.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.bill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--rule);border-radius:6px;padding:4px;background:var(--panel);font-size:13px;max-width:100%}.bill img{width:44px;height:44px;object-fit:cover;border-radius:4px}.bill>span:not(.pdf){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
+.pdf{display:grid;place-items:center;width:44px;height:44px;background:var(--brick);color:#fff;border-radius:4px;font-weight:700;font-size:12px}
+.lb{z-index:11;background:rgb(0 0 0/.85)}.lbin{max-width:1000px;margin:0 auto}.lbin img{width:100%;height:auto;border-radius:6px;background:#fff}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:6px;display:none;z-index:10}
+.scroll{overflow-x:auto}
+.lock{max-width:440px;margin:60px auto;text-align:center}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--rule)}.stack td{display:flow-root;border:0;padding:3px 8px;padding-inline-start:8.5em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--mute)}.stack td:empty{display:none}.stack td.n{text-align:start}.kpi{border-right:0;border-bottom:1px solid var(--rule)}}
+@media(prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(12px);opacity:0}}}
+</style><script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script></head>
+<body>
+<header class="band"><div class="wrap">
+  <div class="brand"><div class="logo">NSR</div><div><h1>Vehicles</h1><div class="sub">NSR Poultry Farms · loans, value, service and parts register</div></div></div>
+  <div class="row" style="align-items:center"><div class="sub" id="sync">Connecting…</div><a class="back" href="../">← NSR app</a></div>
+</div></header>
+<main class="band" style="padding-top:20px"><div class="wrap" id="main">
+  <div class="kpis" id="kpis"></div>
+  <nav id="tabs">
+    <a href="#fleet" data-t="fleet">Fleet</a><a href="#loans" data-t="loans">Loans &amp; EMI</a><a href="#service" data-t="service">Service log</a><a href="#parts" data-t="parts">Parts life</a><a href="#rates" data-t="rates">Rate history &amp; brands</a>
+  </nav>
+  <section id="view"></section>
+</div></main>
+<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
+<div id="toast"></div>
+<datalist id="dl-parts"></datalist><datalist id="dl-brands"></datalist><datalist id="dl-garage"></datalist><datalist id="dl-pos"></datalist>
+<div class="ov lb" id="lb"><div class="lbin"><div class="row" style="justify-content:flex-end;margin-bottom:8px"><a class="btn" id="lbOpen" href="#" target="_blank" rel="noopener" style="background:#fff;color:#141210;text-decoration:none">Open full size</a><button data-a="lbClose" style="background:#fff;color:#141210">Close</button></div><img id="lbImg" alt="Bill"></div></div>
+<script>
+{
+const S={v:[],s:[],tab:'fleet',modal:null,q:'',fv:'',part:''};
+let db=null;
+const LS='nsr-vehicles-v1';
+const TYPES=['Lorry','Egg van','Feed truck','Tractor','Pickup','Car','Two-wheeler','JCB / Loader','Other'];
+const STYPES=['Periodic service','Repair','Tyre change','Parts purchase','Battery','Accident','Electrical','Body work','Other'];
+const POS=['Front left','Front right','Rear left outer','Rear left inner','Rear right outer','Rear right inner','Stepney','Trolley left','Trolley right'];
+let AS=null,BILLS=[];
+const PARTS=['Engine oil','Oil filter','Air filter','Fuel filter','Diesel filter','Gear oil','Brake shoe','Brake pad','Clutch plate','Tyre','Battery','Coolant','Fan belt','Wheel bearing','Shock absorber'];
+const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=x=>{const n=parseFloat(x);return isFinite(n)?n:0};
+const rs=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const kmf=n=>Math.round(n).toLocaleString('en-IN')+' km';
+const pad=n=>String(n).padStart(2,'0');
+const isoD=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today=()=>isoD(new Date());
+const fd=s=>s?new Date(s+'T00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
+const days=(a,b)=>Math.round((new Date(b+'T00:00')-new Date(a+'T00:00'))/864e5);
+const addM=(s,m)=>{const[y,mo,d]=s.split('-').map(Number);const dt=new Date(y,mo-1+m,1);dt.setDate(Math.min(d,new Date(dt.getFullYear(),dt.getMonth()+1,0).getDate()));return isoD(dt)};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const vById=id=>S.v.find(x=>x.id===id);
+const vName=v=>v?(v.reg+(v.make?' · '+v.make:'')):'(deleted vehicle)';
+const $=id=>document.getElementById(id);
+const toast=t=>{const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2600)};
+/* bill address: Firebase Storage link (older bills from the standalone page keep their /_blob/ address) */
+const bu=b=>b.url||('/_blob/'+encodeURIComponent(b.id));
+
+/* ---------- storage ---------- */
+function lsSave(){try{localStorage.setItem(LS,JSON.stringify({v:S.v,s:S.s}))}catch(e){}}
+function lsLoad(){try{const o=JSON.parse(localStorage.getItem(LS)||'{}');S.v=o.v||[];S.s=o.s||[]}catch(e){}}
+const colArr=c=>c==='vehicles'?S.v:S.s;
+async function put(col,obj){
+  if(db){const{id,...body}=obj;try{await db.collection(col).doc(id).set(JSON.parse(JSON.stringify(body)))}catch(e){toast('Could not save: '+(e.message||e.code))}return}
+  const a=colArr(col),i=a.findIndex(x=>x.id===obj.id);i>=0?a[i]=obj:a.push(obj);lsSave();render();
+}
+async function del(col,id){
+  if(db){try{await db.collection(col).doc(id).delete()}catch(e){toast('Could not delete: '+(e.message||e.code))}return}
+  const a=colArr(col),i=a.findIndex(x=>x.id===id);if(i>=0)a.splice(i,1);lsSave();render();
+}
+
+/* ---------- calculations ---------- */
+function loan(v){
+  const L=v.loan;if(!L||!num(L.amount)||!num(L.tenure)||!L.start)return null;
+  const P=num(L.amount),r=num(L.rate)/1200,n=Math.round(num(L.tenure));
+  const calc=r?P*r*(1+r)**n/((1+r)**n-1):P/n,emi=num(L.emi)||calc;
+  let bal=P;const rows=[];
+  for(let i=0;i<n&&bal>0.5;i++){const int=bal*r;let pr=emi-int,amt=emi;if(i===n-1||pr>bal){pr=bal;amt=bal+int}rows.push({no:i+1,due:addM(L.start,i),open:bal,int,pr,amt});bal-=pr}
+  const paid=(v.payments||[]).reduce((a,p)=>a+num(p.amount),0),t=today();let cum=0;
+  for(const x of rows){const b=cum;cum+=x.amt;x.st=paid>=cum-1?'paid':paid>b+1?'part':x.due<t?'over':'due'}
+  const next=rows.find(x=>x.st!=='paid'),total=rows.reduce((a,x)=>a+x.amt,0),dueTo=rows.filter(x=>x.due<=t).reduce((a,x)=>a+x.amt,0);
+  return{rows,emi,calc,paid,total,P,lender:L.lender,rate:num(L.rate),n:rows.length,remaining:Math.max(total-paid,0),principal:next?next.open:0,overdue:Math.max(dueTo-paid,0),overdueN:rows.filter(x=>x.due<t&&x.st!=='paid').length,next,paidN:rows.filter(x=>x.st==='paid').length,interest:total-P,end:rows.length?rows[rows.length-1].due:''};
+}
+function value(v){
+  const P=num(v.price),dep=(v.dep===undefined||v.dep==='')?15:num(v.dep),yrs=v.pdate?Math.max(days(v.pdate,today())/365.25,0):0;
+  const wdv=P*(1-dep/100)**yrs,vals=[...(v.valuations||[])].sort((a,b)=>a.date<b.date?-1:1),latest=vals[vals.length-1];
+  return{wdv,dep,yrs,latest,vals,cur:latest?num(latest.value):wdv};
+}
+function docAlerts(v){return[['Insurance',v.ins],['FC',v.fc],['Permit',v.permit],['Road tax',v.tax]].filter(d=>d[1]).map(([k,d])=>({k,d,left:days(today(),d)})).filter(x=>x.left<=30)}
+function fitments(){
+  const f=[];for(const s of S.s)for(const p of(s.parts||[]))f.push({sid:s.id,vid:s.vid,date:s.date,odo:num(s.odo),name:(p.name||'').trim(),pos:(p.pos||'').trim(),serial:(p.serial||'').trim(),brand:(p.brand||'').trim()||'—',qty:num(p.qty)||1,rate:num(p.rate),lifeKm:num(p.lifeKm),lifeM:num(p.lifeM)});
+  f.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.odo-b.odo);
+  const last={};for(const x of f){const k=fkey(x);const p=last[k];if(p){p.actualKm=x.odo-p.odo;p.actualDays=days(p.date,x.date);p.replaced=true;p.by=x;x.prev=p}last[k]=x}
+  return f;
+}
+const fkey=x=>x.vid+'|'+x.name.toLowerCase()+'|'+(x.pos||'').toLowerCase();
+const pLabel=x=>h(x.name)+(x.pos?` <span class="t-mute">· ${h(x.pos)}</span>`:'');
+/* how the removed part performed: km run, days, cost per 1000 km, share of rated life */
+function perf(p,odo,date){const kmRun=odo-p.odo,d=days(p.date,date),cost=p.rate;return{kmRun,d,cpk:kmRun>0?cost/kmRun*1000:null,pct:p.lifeKm?kmRun/p.lifeKm*100:p.lifeM?d/(p.lifeM*30.44)*100:null}}
+function replTable(list,showV){
+  if(!list.length)return '<div class="empty">No replacements yet. When a part with the same name and position is fitted again, the old one\'s km and cost appear here.</div>';
+  return `<table class="stack"><thead><tr>${showV?'<th>Vehicle</th>':''}<th>Old part</th><th>Fitted</th><th>Removed</th><th class="n">Km driven</th><th class="n">Days</th><th class="n">Of rated life</th><th class="n">Cost / 1,000 km</th><th>Replaced with</th></tr></thead><tbody>${list.map(x=>{const P=perf(x,x.by.odo,x.by.date);return `<tr>${showV?`<td><b>${h(vName(vById(x.vid)))}</b></td>`:''}<td>${pLabel(x)}<br><span class="t-mute">${h(x.brand)}${x.serial?' · #'+h(x.serial):''} · ${rs(x.rate)}</span></td><td>${fd(x.date)}<br><span class="t-mute">${kmf(x.odo)}</span></td><td>${fd(x.by.date)}<br><span class="t-mute">${kmf(x.by.odo)}</span></td><td class="n"><b>${kmf(P.kmRun)}</b></td><td class="n">${P.d}</td><td class="n ${P.pct!==null&&P.pct<80?'t-over':P.pct>=100?'t-ok':''}">${P.pct===null?'—':P.pct.toFixed(0)+'%'}</td><td class="n">${P.cpk===null?'—':rs(P.cpk)}</td><td>${h(x.by.brand)}<br><span class="t-mute">${rs(x.by.rate)}</span></td></tr>`}).join('')}</tbody></table>`;
+}
+/* bills: images open in a viewer, PDFs as a link */
+const billLinks=b=>(b||[]).map(x=>/^image\//.test(x.type)?`<button type="button" class="thumb" data-a="viewBill" data-u="${h(bu(x))}" aria-label="View bill ${h(x.name)}"><img src="${h(bu(x))}" alt=""></button>`:`<a class="btn sm" href="${h(bu(x))}" target="_blank" rel="noopener">${h(x.name||'Bill PDF')}</a>`).join('');
+function lifeOf(x){
+  const v=vById(x.vid),odo=v?num(v.odo):x.odo,used=Math.max(odo-x.odo,0),usedD=Math.max(days(x.date,today()),0);
+  const remKm=x.lifeKm?x.lifeKm-used:null,due=x.lifeM?addM(x.date,x.lifeM):null,remD=due?days(today(),due):null;
+  const pct=Math.max(x.lifeKm?used/x.lifeKm:0,x.lifeM?usedD/(x.lifeM*30.44):0);
+  const st=(remKm!==null&&remKm<0)||(remD!==null&&remD<0)?'over':(remKm!==null&&remKm<=Math.max(500,x.lifeKm*.1))||(remD!==null&&remD<=30)?'due':'ok';
+  return{used,remKm,due,remD,pct,st,odo};
+}
+const current=()=>{const f=fitments(),m={};for(const x of f)m[fkey(x)]=x;return Object.values(m).filter(x=>!x.replaced&&(x.lifeKm||x.lifeM)&&vById(x.vid))};
+const sTotal=s=>num(s.labour)+(s.parts||[]).reduce((a,p)=>a+num(p.rate)*(num(p.qty)||1),0);
+
+/* ---------- views ---------- */
+const stTag={paid:['Paid','t-paid'],part:['Part paid','t-part'],over:['Overdue','t-over'],due:['Upcoming','t-mute'],ok:['Good','t-ok']};
+const tag=(t,c)=>`<span class="tag ${c}">${h(t)}</span>`;
+function kpis(){
+  let val=0,rem=0,prin=0,od=0,odn=0;for(const v of S.v){val+=value(v).cur;const l=loan(v);if(l){rem+=l.remaining;prin+=l.principal;od+=l.overdue;odn+=l.overdueN}}
+  const pd=current().map(lifeOf).filter(x=>x.st!=='ok').length,dc=S.v.reduce((a,v)=>a+docAlerts(v).length,0);
+  $('kpis').innerHTML=[[S.v.length,'Vehicles'],[rs(val),'Fleet value today'],[rs(rem),`Loan balance payable · principal ${rs(prin)}`],[rs(od),`Overdue EMI (${odn})`,od>0],[pd,'Parts due or overdue',pd>0],[dc,'Papers expiring ≤ 30 days',dc>0]]
+    .map(([b,s,hot])=>`<div class="kpi${hot?' hot':''}"><b>${h(b)}</b><span>${h(s)}</span></div>`).join('');
+}
+function fleet(){
+  const q=S.q.toLowerCase(),list=S.v.filter(v=>!q||[v.reg,v.make,v.model,v.type,v.driver].join(' ').toLowerCase().includes(q)).sort((a,b)=>a.reg<b.reg?-1:1);
+  const cur=current();
+  return `<div class="bar"><input id="q" placeholder="Search number, make, driver…" value="${h(S.q)}" style="max-width:340px"><button class="pri" data-a="addV">+ Add vehicle</button></div>`+
+  (list.length?`<table class="stack"><thead><tr><th>Vehicle</th><th class="n">Odometer</th><th class="n">Value today</th><th class="n">Loan balance</th><th>Next EMI</th><th>Alerts</th></tr></thead><tbody>${list.map(v=>{
+    const l=loan(v),va=value(v),pa=cur.filter(x=>x.vid===v.id).map(lifeOf).filter(x=>x.st!=='ok'),da=docAlerts(v);
+    return `<tr class="click" data-a="openV" data-id="${h(v.id)}"><td><b>${h(v.reg)}</b><br><span class="t-mute">${h([v.type,v.make,v.model,v.year].filter(Boolean).join(' · '))}</span></td><td class="n">${kmf(num(v.odo))}</td><td class="n">${rs(va.cur)}</td><td class="n">${l?rs(l.remaining):'—'}</td><td>${l?(l.next?`${fd(l.next.due)} · ${rs(l.next.amt)}${l.overdueN?' '+tag(l.overdueN+' overdue','t-over'):''}`:tag('Closed','t-ok')):'—'}</td><td>${pa.length?tag(pa.length+' part'+(pa.length>1?'s':'')+' due',pa.some(x=>x.st==='over')?'t-over':'t-due'):''}${da.map(d=>tag(d.k+(d.left<0?' expired':' in '+d.left+'d'),d.left<0?'t-over':'t-due')).join('')}${!pa.length&&!da.length?tag('All good','t-ok'):''}</td></tr>`}).join('')}</tbody></table>`
+  :`<div class="empty">${S.v.length?'No vehicle matches that search.':'No vehicles yet. Add your first lorry, egg van or tractor.'}</div>`);
+}
+function loans(){
+  const list=S.v.map(v=>({v,l:loan(v)})).filter(x=>x.l);
+  return `<div class="bar"><h2 style="margin:0">Loans &amp; EMI register</h2></div>`+(list.length?`<table class="stack"><thead><tr><th>Vehicle</th><th>Lender</th><th class="n">Loan</th><th class="n">EMI</th><th class="n">Paid</th><th class="n">Principal left</th><th class="n">Balance payable</th><th>Next due</th><th></th></tr></thead><tbody>${list.map(({v,l})=>`<tr><td><b>${h(v.reg)}</b></td><td>${h(l.lender||'—')}<br><span class="t-mute">${l.rate}% · ${l.n} months</span></td><td class="n">${rs(l.P)}</td><td class="n">${rs(l.emi)}</td><td class="n">${l.paidN}/${l.n}</td><td class="n">${rs(l.principal)}</td><td class="n"><b>${rs(l.remaining)}</b>${l.overdue>0?`<br><span class="t-over">${rs(l.overdue)} overdue</span>`:''}</td><td>${l.next?fd(l.next.due):tag('Closed','t-ok')}</td><td><button class="sm" data-a="openV" data-id="${h(v.id)}" data-go="loan">Schedule</button></td></tr>`).join('')}</tbody></table><p class="note">Balance payable = all EMIs still to be paid (principal + interest). Payments are applied to EMIs in order.</p>`
+  :`<div class="empty">No loans recorded. Open a vehicle and add its loan details.</div>`);
+}
+function service(){
+  const list=S.s.filter(s=>!S.fv||s.vid===S.fv).sort((a,b)=>a.date<b.date?1:-1);
+  return `<div class="bar"><select id="fv" style="max-width:300px"><option value="">All vehicles</option>${S.v.map(v=>`<option value="${h(v.id)}"${v.id===S.fv?' selected':''}>${h(v.reg)}</option>`).join('')}</select><div class="row"><button data-a="addS" data-t="Tyre change">+ Tyre / part purchase</button><button class="pri" data-a="addS">+ Add service / repair</button></div></div>`+
+  (list.length?`<table class="stack"><thead><tr><th>Date</th><th>Vehicle</th><th class="n">Odometer</th><th>Work</th><th>Parts changed</th><th class="n">Total</th><th>Bills</th></tr></thead><tbody>${list.map(s=>`<tr class="click" data-a="editS" data-id="${h(s.id)}"><td>${fd(s.date)}</td><td>${h(vName(vById(s.vid)))}</td><td class="n">${kmf(num(s.odo))}</td><td>${h(s.type)}<br><span class="t-mute">${h(s.garage||'')}</span></td><td>${(s.parts||[]).map(p=>h(p.name)+(p.pos?' · '+h(p.pos):'')+(p.brand?` <span class="t-mute">(${h(p.brand)})</span>`:'')).join(', ')||'—'}</td><td class="n"><b>${rs(sTotal(s))}</b></td><td>${(s.bills||[]).length?tag(s.bills.length+' bill'+(s.bills.length>1?'s':''),'t-ok'):tag('No bill','t-mute')}</td></tr>`).join('')}</tbody></table><p class="note">Total spent: <b>${rs(list.reduce((a,s)=>a+sTotal(s),0))}</b> across ${list.length} entries.</p>`
+  :`<div class="empty">No service records yet.</div>`);
+}
+function lifeRows(items,showV){
+  return items.length?`<table class="stack"><thead><tr>${showV?'<th>Vehicle</th>':''}<th>Part</th><th>Fitted</th><th>Life used</th><th class="n">Km left</th><th>Due date</th><th>Status</th></tr></thead><tbody>${items.map(({x,L})=>`<tr>${showV?`<td><b>${h(vById(x.vid).reg)}</b></td>`:''}<td>${pLabel(x)}<br><span class="t-mute">${h(x.brand)}${x.serial?' · #'+h(x.serial):''} · ${rs(x.rate)}</span></td><td>${fd(x.date)}<br><span class="t-mute">at ${kmf(x.odo)}</span></td><td><div class="life ${L.st}"><i style="width:${Math.min(L.pct*100,100).toFixed(0)}%"></i></div><span class="t-mute">${(L.pct*100).toFixed(0)}% · ${kmf(L.used)} run</span></td><td class="n">${L.remKm===null?'—':kmf(L.remKm)}</td><td>${L.due?fd(L.due):'—'}</td><td>${tag(L.st==='over'?'Replace now':L.st==='due'?'Due soon':'Good',L.st==='over'?'t-over':L.st==='due'?'t-due':'t-ok')}</td></tr>`).join('')}</tbody></table>`:`<div class="empty">No parts with a set life yet. When you log a service, enter the life in km or months for each part.</div>`;
+}
+const sortLife=a=>a.map(x=>({x,L:lifeOf(x)})).sort((p,q)=>q.L.pct-p.L.pct);
+function parts(){
+  const rep=fitments().filter(x=>x.replaced&&vById(x.vid)),names=[...new Set(rep.map(x=>x.name))].sort();
+  if(S.rp&&!names.includes(S.rp))S.rp='';
+  const list=rep.filter(x=>!S.rp||x.name===S.rp).reverse();
+  return `<div class="bar"><h2 style="margin:0">Parts life tracker</h2><span class="t-mute">Worst first · uses each vehicle's latest odometer</span></div>${lifeRows(sortLife(current()),true)}
+  <div class="sec"><h3>How long the old parts lasted</h3><p class="note" style="margin-top:0">Km driven = odometer when replaced − odometer when fitted, matched by vehicle, part and position.</p>${names.length>1?`<div class="chips"><button class="sm${!S.rp?' on':''}" data-a="rp" data-n="">All</button>${names.map(n=>`<button class="sm${n===S.rp?' on':''}" data-a="rp" data-n="${h(n)}">${h(n)}</button>`).join('')}</div>`:''}${replTable(list,true)}</div>`;
+}
+function rates(){
+  const f=fitments(),names=[...new Set(f.map(x=>x.name))].sort();
+  if(!names.length)return `<div class="empty">Rates appear here once parts are logged in services.</div>`;
+  if(!names.includes(S.part))S.part=names[0];
+  const items=f.filter(x=>x.name===S.part),br={};
+  for(const x of items){const b=br[x.brand]||(br[x.brand]={n:0,sum:0,last:0,lastD:'',life:[]});b.n++;b.sum+=x.rate;if(x.date>=b.lastD){b.last=x.rate;b.lastD=x.date}if(x.actualKm>0)b.life.push(x.actualKm)}
+  const hist=[...items].reverse();
+  return `<div class="bar"><h2 style="margin:0">Rate history &amp; brand comparison</h2></div><div class="chips">${names.map(n=>`<button class="sm${n===S.part?' on':''}" data-a="part" data-n="${h(n)}">${h(n)}</button>`).join('')}</div>
+  <div class="sec"><h3>${h(S.part)} — brands</h3><table class="stack"><thead><tr><th>Brand</th><th class="n">Times bought</th><th class="n">Last rate</th><th class="n">Average rate</th><th class="n">Actual life (avg)</th><th class="n">Cost per 1,000 km</th></tr></thead><tbody>${Object.entries(br).map(([b,o])=>{const al=o.life.length?o.life.reduce((a,c)=>a+c,0)/o.life.length:0;return `<tr><td><b>${h(b)}</b></td><td class="n">${o.n}</td><td class="n">${rs(o.last)}</td><td class="n">${rs(o.sum/o.n)}</td><td class="n">${al?kmf(al):'—'}</td><td class="n">${al?rs(o.sum/o.n/al*1000):'—'}</td></tr>`}).join('')}</tbody></table><p class="note">Actual life is measured from one fitment to the next replacement of the same part on the same vehicle.</p></div>
+  <div class="sec"><h3>Purchase history</h3><table class="stack"><thead><tr><th>Date</th><th>Vehicle</th><th>Brand</th><th class="n">Qty</th><th class="n">Rate</th><th class="n">Change</th><th class="n">Lasted</th></tr></thead><tbody>${hist.map((x,i)=>{const prev=hist[i+1],ch=prev&&prev.rate?(x.rate-prev.rate)/prev.rate*100:null;return `<tr><td>${fd(x.date)}</td><td>${h(vName(vById(x.vid)))}${x.pos?`<br><span class="t-mute">${h(x.pos)}</span>`:''}</td><td>${h(x.brand)}</td><td class="n">${x.qty}</td><td class="n">${rs(x.rate)}</td><td class="n ${ch>0?'t-over':ch<0?'t-ok':''}">${ch===null?'—':(ch>0?'+':'')+ch.toFixed(1)+'%'}</td><td class="n">${x.replaced?kmf(x.actualKm):'In use'}</td></tr>`}).join('')}</tbody></table></div>`;
+}
+
+/* ---------- vehicle file ---------- */
+function detail(v){
+  const l=loan(v),va=value(v),da=docAlerts(v),sv=S.s.filter(s=>s.vid===v.id).sort((a,b)=>a.date<b.date?1:-1);
+  const field=(k,lab,type='text',val='')=>`<label>${lab}<input name="${k}" type="${type}" value="${h(val)}"${type==='number'?' step="any" inputmode="decimal"':''} required></label>`;
+  return `<div class="shead"><div><h2 style="margin:0;font-size:30px">${h(v.reg)}</h2><div class="t-mute">${h([v.type,v.make,v.model,v.year,v.fuel].filter(Boolean).join(' · '))}${v.driver?' · Driver: '+h(v.driver):''}</div></div><div class="row"><button class="sm" data-a="editV" data-id="${h(v.id)}">Edit</button><button class="sm" data-a="close">Close</button></div></div>
+  <dl class="facts card"><div><dt>Odometer</dt><dd>${kmf(num(v.odo))}</dd></div><div><dt>Purchased</dt><dd>${fd(v.pdate)} · ${rs(num(v.price))}</dd></div>${[['Insurance',v.ins],['FC',v.fc],['Permit',v.permit],['Road tax',v.tax]].map(([k,d])=>`<div><dt>${k} till</dt><dd class="${d&&days(today(),d)<0?'t-over':d&&days(today(),d)<=30?'t-due':''}">${fd(d)}</dd></div>`).join('')}</dl>
+  <form class="inline" data-f="odo" data-id="${h(v.id)}">${field('odo','Update odometer (km)','number',num(v.odo))}<button>Save reading</button></form>
+  <div class="sec" id="sec-value"><h3>Current value</h3><div class="grid"><div class="card"><span class="t-mute">Value today</span><div class="big">${rs(va.cur)}</div><span class="t-mute">${va.latest?'From valuation on '+fd(va.latest.date):'Estimated by depreciation'}</span></div><div class="card"><span class="t-mute">Book value (${va.dep}% a year, written-down)</span><div class="big">${rs(va.wdv)}</div><span class="t-mute">${va.yrs.toFixed(1)} years since purchase</span></div><div class="card"><span class="t-mute">Your equity (value − loan principal)</span><div class="big ${l&&va.cur-l.principal<0?'t-over':''}">${rs(va.cur-(l?l.principal:0))}</div></div></div>
+  ${va.vals.length?`<table class="stack" style="margin-top:10px"><thead><tr><th>Date</th><th class="n">Value</th><th>Source / note</th><th></th></tr></thead><tbody>${[...va.vals].reverse().map(x=>`<tr><td>${fd(x.date)}</td><td class="n">${rs(num(x.value))}</td><td>${h(x.note||'')}</td><td><button class="sm del" data-a="delVal" data-id="${h(v.id)}" data-k="${h(x.k)}">Delete</button></td></tr>`).join('')}</tbody></table>`:''}
+  <form class="inline" data-f="val" data-id="${h(v.id)}">${field('date','Valuation date','date',today())}${field('value','Market value (₹)','number')}<label>Source<input name="note" placeholder="Dealer quote, insurance IDV…"></label><button>Add valuation</button></form></div>
+  <div class="sec" id="sec-loan"><h3>Loan</h3>${l?`<dl class="facts card"><div><dt>Lender</dt><dd>${h(l.lender||'—')}</dd></div><div><dt>Loan amount</dt><dd>${rs(l.P)} @ ${l.rate}%</dd></div><div><dt>EMI</dt><dd>${rs(l.emi)} × ${l.n}</dd></div><div><dt>Total interest</dt><dd>${rs(l.interest)}</dd></div><div><dt>Paid so far</dt><dd>${rs(l.paid)} (${l.paidN} EMIs)</dd></div><div><dt>Principal outstanding</dt><dd>${rs(l.principal)}</dd></div><div><dt>Balance payable</dt><dd class="big" style="font-size:24px">${rs(l.remaining)}</dd></div><div><dt>Overdue</dt><dd class="${l.overdue>0?'t-over':''}">${l.overdue>0?rs(l.overdue)+' · '+l.overdueN+' EMI':'Nil'}</dd></div><div><dt>Last EMI</dt><dd>${fd(l.end)}</dd></div></dl>
+    <form class="inline" data-f="pay" data-id="${h(v.id)}">${field('date','Payment date','date',today())}${field('amount','Amount paid (₹)','number',l.next?Math.round(l.next.amt):'')}<label>Note<input name="note" placeholder="Cheque / UTR no."></label><button class="pri">Record EMI payment</button></form>
+    ${(v.payments||[]).length?`<details style="margin-top:10px"><summary>Payments recorded (${v.payments.length})</summary><table class="stack"><thead><tr><th>Date</th><th class="n">Amount</th><th>Note</th><th></th></tr></thead><tbody>${[...v.payments].sort((a,b)=>a.date<b.date?1:-1).map(p=>`<tr><td>${fd(p.date)}</td><td class="n">${rs(num(p.amount))}</td><td>${h(p.note||'')}</td><td><button class="sm del" data-a="delPay" data-id="${h(v.id)}" data-k="${h(p.k)}">Delete</button></td></tr>`).join('')}</tbody></table></details>`:''}
+    <details style="margin-top:10px" open><summary>Repayment schedule</summary><div class="scroll"><table><thead><tr><th class="n">#</th><th>Due</th><th class="n">Opening</th><th class="n">Interest</th><th class="n">Principal</th><th class="n">EMI</th><th>Status</th></tr></thead><tbody>${l.rows.map(x=>`<tr><td class="n">${x.no}</td><td>${fd(x.due)}</td><td class="n">${rs(x.open)}</td><td class="n">${rs(x.int)}</td><td class="n">${rs(x.pr)}</td><td class="n">${rs(x.amt)}</td><td>${tag(...stTag[x.st])}</td></tr>`).join('')}</tbody></table></div></details>`
+  :`<div class="empty">No loan on this vehicle. <button class="sm" data-a="editV" data-id="${h(v.id)}">Add loan details</button></div>`}</div>
+  <div class="sec"><h3>Parts life</h3>${lifeRows(sortLife(current().filter(x=>x.vid===v.id)),false)}</div>
+  <div class="sec"><h3>Replaced parts — km driven</h3>${replTable(fitments().filter(x=>x.replaced&&x.vid===v.id).reverse(),false)}</div>
+  <div class="sec"><h3>Service &amp; repair history</h3><div class="row" style="margin-bottom:10px"><button class="pri" data-a="addS" data-v="${h(v.id)}">+ Add service</button><button data-a="addS" data-v="${h(v.id)}" data-t="Tyre change">+ Tyre / part purchase</button><span class="t-mute">Total spent ${rs(sv.reduce((a,s)=>a+sTotal(s),0))}</span></div>${sv.length?`<table class="stack"><thead><tr><th>Date</th><th class="n">Odometer</th><th>Work</th><th>Parts</th><th class="n">Total</th><th>Bills</th></tr></thead><tbody>${sv.map(s=>`<tr class="click" data-a="editS" data-id="${h(s.id)}"><td>${fd(s.date)}</td><td class="n">${kmf(num(s.odo))}</td><td>${h(s.type)}<br><span class="t-mute">${h(s.garage||'')}</span></td><td>${(s.parts||[]).map(p=>`${h(p.name)}${p.pos?' · '+h(p.pos):''} <span class="t-mute">${h(p.brand||'')} ${rs(num(p.rate))}</span>`).join('<br>')||'—'}</td><td class="n">${rs(sTotal(s))}</td><td><div class="bills">${billLinks(s.bills)||'<span class="t-mute">—</span>'}</div></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No services logged.</div>'}</div>
+  ${da.length?`<p class="note t-over">Papers needing attention: ${da.map(d=>h(d.k)+' '+(d.left<0?'expired '+fd(d.d):'expires '+fd(d.d))).join(' · ')}</p>`:''}`;
+}
+
+/* ---------- forms ---------- */
+function vForm(v){
+  v=v||{};const L=v.loan||{},f=(k,lab,type='text',val=v[k],ex='')=>`<label>${lab}<input name="${k}" type="${type}" value="${h(val??'')}"${type==='number'?' step="any" inputmode="decimal"':''} ${ex}></label>`;
+  return `<form data-f="veh" data-id="${h(v.id||'')}"><div class="shead"><h2 style="margin:0">${v.id?'Edit '+h(v.reg):'Add vehicle'}</h2><button type="button" class="sm" data-a="${v.id?'openV':'close'}" data-id="${h(v.id||'')}">Cancel</button></div>
+  <fieldset><legend>Vehicle</legend><div class="grid">${f('reg','Registration no. *','text',v.reg,'required placeholder="TN 67 AB 1234"')}<label>Type<select name="type">${TYPES.map(t=>`<option${t===v.type?' selected':''}>${t}</option>`).join('')}</select></label>${f('make','Make')}${f('model','Model')}${f('year','Year','number')}<label>Fuel<select name="fuel">${['Diesel','Petrol','CNG','Electric'].map(t=>`<option${t===v.fuel?' selected':''}>${t}</option>`).join('')}</select></label>${f('driver','Driver')}${f('odo','Odometer (km)','number')}</div></fieldset>
+  <fieldset><legend>Purchase &amp; value</legend><div class="grid">${f('pdate','Purchase date','date')}${f('price','Purchase price (₹)','number')}${f('dep','Depreciation % a year','number',v.dep??15)}</div></fieldset>
+  <fieldset><legend>Papers — expiry dates</legend><div class="grid">${f('ins','Insurance','date')}${f('fc','FC (fitness)','date')}${f('permit','Permit','date')}${f('tax','Road tax','date')}</div></fieldset>
+  <fieldset><legend>Loan (leave blank if none)</legend><div class="grid">${f('l_lender','Bank / financier','text',L.lender)}${f('l_amount','Loan amount (₹)','number',L.amount)}${f('l_rate','Interest % a year','number',L.rate)}${f('l_tenure','Tenure (months)','number',L.tenure)}${f('l_start','First EMI date','date',L.start)}${f('l_emi','EMI (₹) — blank to calculate','number',L.emi||'')}</div><p class="note" id="emiCalc"></p></fieldset>
+  <div class="row" style="justify-content:space-between"><button class="pri">Save vehicle</button>${v.id?`<button type="button" class="del" data-a="delV" data-id="${h(v.id)}">Delete vehicle</button>`:''}</div></form>`;
+}
+const pRow=(p={})=>`<tr><td><input name="p_name" list="dl-parts" value="${h(p.name||'')}" placeholder="Part" style="min-width:120px"></td><td><input name="p_pos" list="dl-pos" value="${h(p.pos||'')}" placeholder="Position" style="min-width:120px"></td><td><input name="p_brand" list="dl-brands" value="${h(p.brand||'')}" placeholder="Brand" style="min-width:100px"></td><td><input name="p_serial" value="${h(p.serial||'')}" placeholder="Serial no." style="min-width:100px"></td><td><input name="p_qty" type="number" step="any" value="${h(p.qty??1)}" style="width:64px"></td><td><input name="p_rate" type="number" step="any" value="${h(p.rate??'')}" placeholder="₹" style="min-width:80px"></td><td><input name="p_km" type="number" step="any" value="${h(p.lifeKm??'')}" placeholder="km" style="min-width:80px"></td><td><input name="p_mon" type="number" step="any" value="${h(p.lifeM??'')}" placeholder="mon" style="width:70px"></td><td><button type="button" class="sm del" data-a="rmRow" aria-label="Remove part">×</button></td></tr>`;
+function billsBox(){return `<div class="bills">${BILLS.map((b,i)=>`<span class="bill">${/^image\//.test(b.type)?`<img src="${h(bu(b))}" alt="">`:`<span class="pdf">PDF</span>`}<span>${h(b.name)}</span><button type="button" class="sm del" data-a="rmBill" data-i="${i}" aria-label="Remove bill">×</button></span>`).join('')||'<span class="t-mute">No bill attached yet.</span>'}</div>`}
+function sForm(s,vid,type){
+  s=s||{vid,date:today(),type:type||'Periodic service',parts:[type==='Tyre change'?{name:'Tyre',lifeKm:40000}:{}]};const v=vById(s.vid);BILLS=[...(s.bills||[])];
+  return `<form data-f="svc" data-id="${h(s.id||'')}"><div class="shead"><h2 style="margin:0">${s.id?'Edit entry':type==='Tyre change'?'Tyre / part purchase':'Add service / repair'}</h2><button type="button" class="sm" data-a="${v?'openV':'close'}" data-id="${h(s.vid||'')}">Cancel</button></div>
+  <div class="grid"><label>Vehicle *<select name="vid" required><option value="">Choose…</option>${S.v.map(x=>`<option value="${h(x.id)}"${x.id===s.vid?' selected':''}>${h(x.reg)}</option>`).join('')}</select></label><label>Date<input name="date" type="date" value="${h(s.date)}" required></label><label>Odometer at fitting (km)<input name="odo" type="number" step="any" value="${h(s.odo??(v?v.odo:''))}" required></label><label>Work type<select name="type">${STYPES.map(t=>`<option${t===s.type?' selected':''}>${t}</option>`).join('')}</select></label><label>Garage / shop<input name="garage" list="dl-garage" value="${h(s.garage||'')}"></label><label>Bill no.<input name="billNo" value="${h(s.billNo||'')}"></label><label>Labour charge (₹)<input name="labour" type="number" step="any" value="${h(s.labour??'')}"></label></div>
+  <fieldset><legend>Parts changed / bought</legend><div class="scroll"><table class="ptab"><thead><tr><th>Part</th><th>Position</th><th>Brand</th><th>Serial no.</th><th>Qty</th><th>Rate (each)</th><th>Life km</th><th>Life months</th><th></th></tr></thead><tbody id="prows">${(s.parts.length?s.parts:[{}]).map(pRow).join('')}</tbody></table></div><button type="button" class="sm" data-a="addRow">+ Add part</button><p class="note">For tyres, enter one row per tyre with its position (Front left, Rear right outer…) so each tyre's km is tracked on its own.</p>
+  <div id="repl"></div></fieldset>
+  <fieldset><legend>Bills</legend>${AS?`<label class="btn" style="display:inline-flex;align-items:center;gap:8px;color:var(--ink);font-size:15px">Upload bill photo or PDF<input type="file" id="billFile" accept="image/*,application/pdf" multiple style="position:absolute;opacity:0;width:1px;height:1px"></label> <span id="upst" class="t-mute"></span>`:'<p class="note">Bill upload works when you are signed in to the NSR app.</p>'}<div id="billBox">${billsBox()}</div></fieldset>
+  <label>Notes<textarea name="notes" rows="2">${h(s.notes||'')}</textarea></label>
+  <p style="font-size:20px">Total: <b id="stot">₹0</b></p>
+  <div class="row" style="justify-content:space-between"><button class="pri">Save</button>${s.id?`<button type="button" class="del" data-a="delS" data-id="${h(s.id)}">Delete entry</button>`:''}</div></form>`;
+}
+/* live: what is being replaced and how long it lasted */
+function updRepl(){
+  const f=document.querySelector('form[data-f=svc]'),box=$('repl');if(!f||!box)return;
+  const vid=f.vid.value,date=f.date.value||today(),odo=num(f.odo.value),sid=f.dataset.id,all=fitments().filter(x=>x.vid===vid&&x.sid!==sid&&x.date<=date);
+  const out=[...f.querySelectorAll('#prows tr')].map(r=>{const name=r.querySelector('[name=p_name]').value.trim(),pos=r.querySelector('[name=p_pos]').value.trim();if(!name)return '';
+    const k=fkey({vid,name,pos}),prev=all.filter(x=>fkey(x)===k).pop();
+    if(!prev)return `<tr><td>${h(name)}${pos?' · '+h(pos):''}</td><td colspan="5" class="t-mute">First fitment recorded — km will be measured from ${kmf(odo)}.</td></tr>`;
+    const P=perf(prev,odo,date);return `<tr><td>${h(name)}${pos?' · '+h(pos):''}</td><td>${h(prev.brand)}<br><span class="t-mute">fitted ${fd(prev.date)} at ${kmf(prev.odo)}</span></td><td class="n"><b>${P.kmRun>=0?kmf(P.kmRun):'Check odometer'}</b></td><td class="n">${P.d} days</td><td class="n ${P.pct!==null&&P.pct<80?'t-over':''}">${P.pct===null?'—':P.pct.toFixed(0)+'% of rated'}</td><td class="n">${P.cpk===null?'—':rs(P.cpk)+' / 1,000 km'}</td></tr>`}).join('');
+  box.innerHTML=out?`<h4 style="margin:14px 0 6px">Old part being replaced</h4><table class="stack"><thead><tr><th>Part</th><th>Old part</th><th class="n">Km driven</th><th class="n">Days</th><th class="n">Life achieved</th><th class="n">Cost</th></tr></thead><tbody>${out}</tbody></table>`:'';
+}
+async function uploadBills(files){
+  const st=$('upst');for(const file of files){if(st)st.textContent='Uploading '+file.name+'…';
+    try{const r=await AS.upload(file);BILLS.push({id:r.id,url:r.url,name:file.name,type:r.contentType});$('billBox')&&($('billBox').innerHTML=billsBox())}
+    catch(e){toast(e.code==='too_large'?'File too large (max 10 MB)':e.code==='unsupported_type'?'Only photos or PDF':'Upload failed: '+(e.message||e.code))}}
+  if(st)st.textContent='';
+}
+function updTotal(){const f=document.querySelector('form[data-f=svc]');if(!f)return;let t=num(f.labour.value);f.querySelectorAll('#prows tr').forEach(r=>t+=num(r.querySelector('[name=p_rate]').value)*(num(r.querySelector('[name=p_qty]').value)||1));$('stot').textContent=rs(t)}
+function updEmi(){const f=document.querySelector('form[data-f=veh]');if(!f)return;const l=loan({loan:{amount:f.l_amount.value,rate:f.l_rate.value,tenure:f.l_tenure.value,start:f.l_start.value||today()}});$('emiCalc').textContent=l?`Calculated EMI ${rs(l.calc)} · total interest ${rs(l.calc*l.n-l.P)}`:''}
+
+/* ---------- render ---------- */
+function lists(){
+  const f=fitments(),u=a=>[...new Set(a.filter(Boolean))].sort().map(x=>`<option value="${h(x)}">`).join('');
+  $('dl-parts').innerHTML=u([...PARTS,...f.map(x=>x.name)]);$('dl-brands').innerHTML=u(f.map(x=>x.brand).filter(b=>b!=='—'));$('dl-garage').innerHTML=u(S.s.map(s=>s.garage));$('dl-pos').innerHTML=u([...POS,...f.map(x=>x.pos)]);
+}
+function render(){
+  if(window.__vhLocked)return;
+  kpis();document.querySelectorAll('#tabs a').forEach(a=>a.classList.toggle('on',a.dataset.t===S.tab));
+  const fo=document.activeElement&&document.activeElement.id==='q';
+  $('view').innerHTML=({fleet,loans,service,parts,rates}[S.tab]||fleet)();
+  if(fo){const q=$('q');q.focus();q.setSelectionRange(q.value.length,q.value.length)}
+  if(S.modal&&S.modal.k==='v'){const v=vById(S.modal.id);if(v){const sc=$('ov').scrollTop;$('sheet').innerHTML=detail(v);$('ov').scrollTop=sc}else closeM()}
+  lists();
+}
+function openM(html,k,id){S.modal={k,id};$('sheet').innerHTML=html;$('ov').classList.add('show');$('ov').scrollTop=0;document.body.style.overflow='hidden'}
+function closeM(){S.modal=null;$('ov').classList.remove('show');document.body.style.overflow=''}
+const openV=(id,go)=>{const v=vById(id);if(!v)return;openM(detail(v),'v',id);if(go){const e=$('sec-'+go);if(e)e.scrollIntoView()}};
+function setTab(){const t=location.hash.slice(1);S.tab=['fleet','loans','service','parts','rates'].includes(t)?t:'fleet';render()}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id;
+  if(['delV','delS','delPay','delVal'].includes(a)&&!b.dataset.armed){b.dataset.armed=1;const t=b.textContent;b.textContent='Tap again to delete';setTimeout(()=>{if(b.isConnected){b.textContent=t;delete b.dataset.armed}},3000);return}
+  if(a==='addV')openM(vForm(),'f');
+  else if(a==='editV')openM(vForm(vById(id)),'f');
+  else if(a==='openV')id?openV(id,b.dataset.go):closeM();
+  else if(a==='close')closeM();
+  else if(a==='addS'){if(!S.v.length){toast('Add a vehicle first');return}openM(sForm(null,b.dataset.v||S.fv||'',b.dataset.t),'f')}
+  else if(a==='editS')openM(sForm(S.s.find(s=>s.id===id)),'f');
+  else if(a==='addRow'){$('prows').insertAdjacentHTML('beforeend',pRow());}
+  else if(a==='rmRow'){b.closest('tr').remove();updTotal();updRepl()}
+  else if(a==='part'){S.part=b.dataset.n;render()}
+  else if(a==='rp'){S.rp=b.dataset.n;render()}
+  else if(a==='rmBill'){BILLS.splice(+b.dataset.i,1);$('billBox').innerHTML=billsBox()}
+  else if(a==='viewBill'){$('lbImg').src=b.dataset.u;$('lbOpen').href=b.dataset.u;$('lb').classList.add('show')}
+  else if(a==='lbClose')$('lb').classList.remove('show');
+  else if(a==='delV'){del('vehicles',id);closeM();toast('Vehicle deleted')}
+  else if(a==='delS'){const s=S.s.find(x=>x.id===id);del('services',id);s&&vById(s.vid)?openV(s.vid):closeM();toast('Entry deleted')}
+  else if(a==='delPay'||a==='delVal'){const v=vById(id),f=a==='delPay'?'payments':'valuations';put('vehicles',{...v,[f]:(v[f]||[]).filter(x=>x.k!==b.dataset.k)})}
+  if(['addV','editV','addS','editS'].includes(a))setTimeout(()=>{updTotal();updEmi();updRepl()},0);
+});
+$('ov').addEventListener('click',e=>{if(e.target.id==='ov')closeM()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('lb').classList.contains('show'))$('lb').classList.remove('show');else if(S.modal)closeM()}});
+$('lb').addEventListener('click',e=>{if(e.target.id==='lb')$('lb').classList.remove('show')});
+document.addEventListener('input',e=>{
+  if(e.target.id==='q'){S.q=e.target.value;render();return}
+  if(e.target.closest('form[data-f=svc]')){updTotal();updRepl()}
+  if(e.target.closest('form[data-f=veh]'))updEmi();
+});
+document.addEventListener('change',e=>{if(e.target.id==='fv'){S.fv=e.target.value;render()}if(e.target.id==='billFile'&&AS){uploadBills([...e.target.files]);e.target.value=''}if(e.target.closest('form[data-f=svc]'))updRepl()});
+document.addEventListener('submit',e=>{
+  e.preventDefault();const f=e.target,d=Object.fromEntries(new FormData(f)),id=f.dataset.id;
+  if(f.dataset.f==='veh'){
+    const old=vById(id)||{},v={...old,id:id||uid(),reg:d.reg.trim().toUpperCase(),type:d.type,make:d.make.trim(),model:d.model.trim(),year:d.year,fuel:d.fuel,driver:d.driver.trim(),odo:num(d.odo),pdate:d.pdate,price:num(d.price),dep:d.dep,ins:d.ins,fc:d.fc,permit:d.permit,tax:d.tax,
+      loan:num(d.l_amount)?{lender:d.l_lender.trim(),amount:num(d.l_amount),rate:num(d.l_rate),tenure:num(d.l_tenure),start:d.l_start||today(),emi:num(d.l_emi)}:null,payments:old.payments||[],valuations:old.valuations||[]};
+    if(num(d.l_amount)&&!num(d.l_tenure)){toast('Enter loan tenure in months');return}
+    delete v.sample;put('vehicles',v);S.modal={k:'v',id:v.id};openV(v.id);toast('Vehicle saved');
+  }else if(f.dataset.f==='svc'){
+    const parts=[...f.querySelectorAll('#prows tr')].map(r=>{const g=n=>r.querySelector(`[name=${n}]`).value;return{name:g('p_name').trim(),pos:g('p_pos').trim(),serial:g('p_serial').trim(),brand:g('p_brand').trim(),qty:num(g('p_qty'))||1,rate:num(g('p_rate')),lifeKm:num(g('p_km')),lifeM:num(g('p_mon'))}}).filter(p=>p.name);
+    const s={id:id||uid(),vid:d.vid,date:d.date,odo:num(d.odo),type:d.type,garage:d.garage.trim(),billNo:d.billNo.trim(),labour:num(d.labour),notes:d.notes.trim(),parts,bills:BILLS};
+    put('services',s);const v=vById(s.vid);if(v&&s.odo>num(v.odo))put('vehicles',{...v,odo:s.odo});openV(s.vid);toast('Service saved');
+  }else if(f.dataset.f==='pay'){const v=vById(id);if(!num(d.amount))return;put('vehicles',{...v,payments:[...(v.payments||[]),{k:uid(),date:d.date,amount:num(d.amount),note:d.note.trim()}]});toast('Payment recorded')}
+  else if(f.dataset.f==='val'){const v=vById(id);if(!num(d.value))return;put('vehicles',{...v,valuations:[...(v.valuations||[]),{k:uid(),date:d.date,value:num(d.value),note:d.note.trim()}]});toast('Valuation added')}
+  else if(f.dataset.f==='odo'){const v=vById(id);put('vehicles',{...v,odo:num(d.odo)});toast('Odometer updated')}
+});
+window.addEventListener('hashchange',setTab);
+setTab();
+
+/* ---------- connect to the NSR farm database ---------- */
+const ld=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)});
+function lockOut(msg){window.__vhLocked=true;$('sync').textContent='';$('main').innerHTML=`<div class="lock card"><h2>🚚 Vehicles</h2><p>${msg}</p><p><a class="btn" href="../" style="text-decoration:none;display:inline-block">← Open NSR app</a></p></div>`}
+/* Management, or a user Management has given Vehicles access to, signed in to the NSR app on this phone */
+async function vhConnect(){
+  try{await ld('../firebase-config.js')}catch(e){return null}
+  if(!window.FIREBASE_CONFIG||!window.FIREBASE_CONFIG.apiKey)return null;
+  const B='https://www.gstatic.com/firebasejs/10.14.1/';
+  for(const m of ['app','auth','firestore','storage'])await ld(B+'firebase-'+m+'-compat.js');
+  firebase.initializeApp(window.FIREBASE_CONFIG);
+  const cu=await new Promise(r=>{const u=firebase.auth().onAuthStateChanged(x=>{u();r(x)})});
+  const f=firebase.firestore();try{f.settings({experimentalForceLongPolling:true,ignoreUndefinedProperties:true,merge:true})}catch(e){}
+  let sess=null;try{sess=sessionStorage.getItem('lf-session')||(localStorage.getItem('lf-remember')==='1'?localStorage.getItem('lf-session'):null)}catch(e){}
+  let me=null;if(cu&&!cu.isAnonymous){try{const d=await f.doc('users/'+cu.uid).get();me=d.exists?d.data():null}catch(e){}}
+  const ok=!!sess&&(sess==='owner'||!!(me&&(me.role==='admin'||me.veh)));
+  if(!ok){lockOut(sess?'Your login does not have Vehicles access. Ask Management to turn on <b>Vehicles access</b> for you in Settings → Users.':'Please log in to the NSR app first, then open Vehicles.');return false}
+  const st=firebase.storage();
+  AS={async upload(file){
+    const type=file.type||(/\.pdf$/i.test(file.name)?'application/pdf':'image/jpeg');
+    if(!/^image\/|^application\/pdf$/.test(type))throw{code:'unsupported_type'};
+    if(file.size>10*1024*1024)throw{code:'too_large'};
+    const id=uid()+'-'+file.name.replace(/[^\w.-]+/g,'_').slice(-40),ref=st.ref('vehicles/bills/'+id);
+    await ref.put(file,{contentType:type});return{id,url:await ref.getDownloadURL(),contentType:type}}};
+  return{collection:c=>f.collection('veh_'+c)};
+}
+(async()=>{
+  let r=null;try{r=await vhConnect()}catch(e){r=null}
+  if(r===false)return;
+  if(!r){lsLoad();$('sync').textContent='Saved on this device only';render();return}
+  db=r;let got=0;const timer=setTimeout(()=>{if(got<3)$('sync').textContent='Cannot reach saved data yet — check connection'},10000);
+  const sub=(col,key)=>db.collection(col).onSnapshot(sn=>{S[key]=sn.docs.map(d=>({...d.data(),id:d.id}));if(!sn.metadata.fromCache){got|=key==='v'?1:2;if(got===3){clearTimeout(timer);$('sync').textContent='Synced'}}render()},er=>{clearTimeout(timer);$('sync').textContent=er.code==='permission-denied'?'No permission — publish the new database rules':'Sync stopped ('+er.code+') — reopen the page'});
+  sub('vehicles','v');sub('services','s');
+})();
+}
+</script>
+</body>
+</html>
