@@ -16,12 +16,12 @@ self.addEventListener('fetch', e => {
   const own = url.origin === self.location.origin;
   const lib = /(^|\.)gstatic\.com$|fonts\.googleapis\.com$/.test(url.hostname);
   if (!own && !lib) return;              // database traffic goes straight to Firebase
-  if (own) {                             // app files: fresh copy when online; on a slow signal the saved copy after 3.5 s
+  if (own) {                             // app files: fresh copy when online; on a slow signal the saved copy after 2 s
     const net = fetch(req).then(r => { if (r.ok) { const c = r.clone(); caches.open(VERSION).then(x => x.put(req, c)); } return r; });
     const saved = () => caches.match(req).then(r => r || (req.mode === 'navigate' ? caches.match('./index.html') : undefined));
     e.respondWith(new Promise(res => {
       let done = false; const fin = r => { if (!done && r) { done = true; res(r); } };
-      const t = setTimeout(() => saved().then(fin), 3500);
+      const t = setTimeout(() => saved().then(fin), 2000);
       net.then(r => { clearTimeout(t); fin(r); }).catch(() => { clearTimeout(t); saved().then(r => r ? fin(r) : fin(Response.error())); });
     }));
   } else {                               // fonts & Firebase library: saved copy first

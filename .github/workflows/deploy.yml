@@ -39,6 +39,11 @@ jobs:
           PY
           for f in /tmp/app_*.js; do node --check "$f"; done
           node --check vehicles-src/sfparse.js
+      - name: Open every page in a test browser (stops the deploy on any error)
+        run: |
+          pip install -q playwright
+          python3 -m playwright install --with-deps chromium >/dev/null
+          python3 tests/smoke.py app
       - name: Deploy test copy
         if: github.ref != 'refs/heads/main'
         run: npx -y netlify-cli@17 deploy --dir=app --functions=netlify/functions --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --alias "test-$(echo ${GITHUB_HEAD_REF:-$GITHUB_REF_NAME} | tr -c 'a-zA-Z0-9' '-' | cut -c1-30)" --message "${{ github.sha }}"

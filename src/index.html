@@ -1088,8 +1088,8 @@ async function putSetting(id,obj){if(id!=='logo')audit('settings',id,id==='staff
 /* one document per day; each shed is a key with a "sup" (supervisor) and "chk" (checker) part */
 async function mergeDay(date,shed,obj){audit('day',date+' '+shed,audBrief(obj));
   if(db){const ref=db.collection('day').doc(date);
-    try{await ref.update({[shed]:obj})}catch(e){
-      if(e&&e.code==='invalid_argument'){const s=await ref.get();if(s.exists)throw e;await ref.set({[shed]:obj})}else throw e}
+    try{await ref.update({[shed]:obj,_u:Date.now()})}catch(e){
+      if(e&&(e.code==='not-found'||e.code==='invalid_argument'||e.code==='invalid-argument')){const s=await ref.get();if(s.exists)throw e;await ref.set({[shed]:obj,_u:Date.now()})}else throw e}
     return}
   const L=lsGet();L.day=L.day||{};const d=L.day[date]=L.day[date]||{};d[shed]=deepMerge(d[shed]||{},obj);lsSet(L);loadLocal();refresh()}
 /* change history: who changed what and when (Management can read it in Setup) */
@@ -3928,7 +3928,15 @@ async function boot(){
   const err=e=>{if(e&&e.code==='permission-denied')return;clearTimeout(timer);banner.style.display='block';banner.textContent=e&&e.code==='revoked'?t('accessEnded'):t('liveStopped')};
   const list=snap=>snap.docs.map(x=>({id:x.id,...x.data()}));const map=snap=>{const o={};snap.docs.forEach(x=>o[x.id]=x.data());return o};
   let rq=null,dayInit=false;const later=()=>{if(rq)return;rq=setTimeout(()=>{rq=null;compute();if(S.user&&!applySession())showLogin();refresh()},60)};
-  db.collection('day').onSnapshot({includeMetadataChanges:true},s=>{if(!s.metadata.fromCache)ok();if(!dayInit||!s.docChanges||s.docChanges().length){dayInit=true;S.day=map(s);later()}},err);
+  /* daily entries: the full history once a week (or when this phone has none saved); otherwise the saved copy plus only days changed recently.
+     Keeps database reads small as the history grows, so the farm stays on the free plan. */
+  const dayFull=()=>db.collection('day').onSnapshot({includeMetadataChanges:true},s=>{if(!s.metadata.fromCache){ok();try{localStorage.setItem('lf-dayfull',JSON.stringify({at:Date.now(),n:s.size}))}catch(e){}}if(!dayInit||!s.docChanges||s.docChanges().length){dayInit=true;S.day=map(s);later()}},err);
+  (async()=>{let last={};try{last=JSON.parse(localStorage.getItem('lf-dayfull')||'{}')}catch(e){}
+    if(!last.at||Date.now()-last.at>7*864e5||!db.collection('day').where)return dayFull();
+    let base=null,maxU=0;try{const c=await db.collection('day').get({source:'cache'});if(c.size>=num(last.n)){base={};c.docs.forEach(x=>{base[x.id]=x.data();maxU=Math.max(maxU,num(x.data()._u))})}}catch(e){}
+    if(!base||!maxU)return dayFull();
+    S.day=base;dayInit=true;later();
+    db.collection('day').where('_u','>',maxU-3*864e5).onSnapshot({includeMetadataChanges:true},s=>{if(!s.metadata.fromCache)ok();let ch=0;s.docs.forEach(x=>{const d=x.data();if(JSON.stringify(S.day[x.id])!==JSON.stringify(d)){S.day[x.id]=d;ch++}});if(ch)later()},err)})();
   db.collection('visits').where('date','>=',addDays(today(),-8)).onSnapshot(s=>{S.visits=list(s);later()},err);
   db.collection('vacc').onSnapshot(s=>{S.vacc=list(s);later()},err);
   db.collection('duty').where('date','>=',addDays(today(),-31)).onSnapshot(s=>{S.duty=map(s);later()},err);

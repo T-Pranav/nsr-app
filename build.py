@@ -24,7 +24,7 @@ async function initFirebase(){const V='10.14.1',B='https://www.gstatic.com/fireb
   /* keep a staff member's own login if they are signed in; otherwise a guest login just for the login screen */
   const cu=await new Promise(r=>{const u=firebase.auth().onAuthStateChanged(x=>{u();r(x)})});
   if(!cu){try{await firebase.auth().signInAnonymously()}catch(e){if(!firebase.auth().currentUser)throw e}}
-  const f=firebase.firestore();try{f.settings({experimentalForceLongPolling:true,ignoreUndefinedProperties:true,merge:true})}catch(e){}
+  const f=firebase.firestore();try{f.settings({experimentalForceLongPolling:true,ignoreUndefinedProperties:true,merge:true,cacheSizeBytes:firebase.firestore.CACHE_SIZE_UNLIMITED})}catch(e){}
   try{await f.enablePersistence({synchronizeTabs:true})}catch(e){}
   addEventListener('online',()=>{try{f.enableNetwork()}catch(e){}});
   setTimeout(()=>{try{syncWatch();syncRefresh()}catch(e){}},4000);
@@ -45,7 +45,7 @@ s=s.replace("/* ---------- data store (shared cloud db, or this-device fallback)
 s=s.replace("if(db){await db.collection(coll).doc(id).set(obj);return}","if(db){FB?await soon(db.collection(coll).doc(id).set(obj)):await db.collection(coll).doc(id).set(obj);return}",1)
 s=s.replace("if(db){await db.collection(coll).doc(id).delete();return}","if(db){FB?await soon(db.collection(coll).doc(id).delete()):await db.collection(coll).doc(id).delete();return}",1)
 s=s.replace("if(db){await db.doc('settings/'+id).set(obj);return}","if(db){FB?await soon(db.doc('settings/'+id).set(obj)):await db.doc('settings/'+id).set(obj);return}",1)
-s=s.replace("  if(db){const ref=db.collection('day').doc(date);","  if(db&&FB){await soon(db.collection('day').doc(date).set({[shed]:obj},{merge:true}));return}\n  if(db){const ref=db.collection('day').doc(date);",1)
+s=s.replace("  if(db){const ref=db.collection('day').doc(date);","  if(db&&FB){await soon(db.collection('day').doc(date).set({[shed]:obj,_u:Date.now()},{merge:true}));return}\n  if(db){const ref=db.collection('day').doc(date);",1)
 s=s.replace("async function saveShedPhotos(date,shed,add){const id=date+'_'+shed;for(const k in add)add[k]=await toStore('photos/'+id+'/'+k+'.jpg',add[k]);","async function saveShedPhotos(date,shed,add){const id=date+'_'+shed;for(const k in add)add[k]=await toStore('photos/'+id+'/'+k+'.jpg',add[k]);\n  if(db&&FB){await soon(db.doc('photos/'+id).set({...add,ts:Date.now()},{merge:true}));return}",1)
 s=s.replace("if(db){await db.doc('photos/'+id).set(obj);return}","if(db){FB?await soon(db.doc('photos/'+id).set(obj)):await db.doc('photos/'+id).set(obj);return}",1)
 # first-time admin allowed in firebase mode too
