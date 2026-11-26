@@ -38,3 +38,10 @@ Still pasted by hand from `firestore.rules` into Firebase → Firestore → Rule
 - One-time setup: run `setup-deploy.sh` in Google Cloud Shell, then add `GCP_DEPLOY_PROVIDER` and `GCP_DEPLOY_SA` as repository secrets.
 - The `nsr-deploy` account can only change rules. It cannot read farm data. Only the `main` branch of this repository can use it.
 - Without those two secrets the step is skipped and the site still deploys.
+
+## WhatsApp daily report
+- `netlify/functions/wa-report.mjs` (`/api/wa-report`) sends the day's report PDF with an approved template through the WhatsApp Business Cloud API.
+- Netlify environment variables: `WA_TOKEN` (permanent system-user token), `WA_PHONE_ID` (phone number ID), optional `WA_TEMPLATE` (default `nsr_daily_report`) and `WA_LANG` (default `en`).
+- The template has a DOCUMENT header and 5 body variables: date, production trays, production %, mortality, closing birds.
+- Numbers and the on/off switch are set in the app: Settings → WhatsApp daily report (Management). The log is kept in Firestore `wa/<date>`.
+- It sends when the last shed of the day is verified and posted, once per date. Management can resend from Settings.

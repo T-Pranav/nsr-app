@@ -52,6 +52,8 @@ service cloud.firestore {
     match /veh_vehicles/{id}   { allow read, write: if canVeh(); }
     match /veh_services/{id}   { allow read, write: if canVeh(); }
     match /veh_fuel/{id}       { allow read, write: if canVeh(); }
+    // WhatsApp daily report log: one document per date, written when Admin / Management posts the last shed
+    match /wa/{id}             { allow read, create, update: if isOffice(); allow delete: if isMgmt(); }
     // feed silos: copied hourly by the GitHub job (server account, bypasses rules); staff read only
     match /silo/{id}           { allow read: if isStaff(); allow write: if false; }
     match /wt/{id}             { allow read, create, update: if isLayer(); allow delete: if isOffice(); }

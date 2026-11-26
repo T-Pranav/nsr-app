@@ -2128,7 +2128,7 @@ chkForm(){
     const o={mort:num($('#cMort').value),culls:num($('#cCulls').value),pm:readPm('cPm'),feed:num($('#cFeed').value),
       close:Object.fromEntries(CK.map(k=>[k,num($('#cC_'+k).value)])),...Object.fromEntries(XK.map(k=>[k,num($('#cX_'+k).value)])),lines,vDam:num($('#cVDam').value),bSold:num($('#cBSold').value),bParty:$('#cBParty').value.trim(),bIn:num($('#cBIn').value),
       note:$('#cNote').value.trim(),verified,by:S.me,ts:Date.now()};
-    try{await mergeDay(dt,sh,{chk:o});this.dirty=false;this.lines=null;toast(verified?t('posted',{s:sh}):t('saved'));this.render()}catch(e){toast(t('saveFail'))}};
+    try{await mergeDay(dt,sh,{chk:o});this.dirty=false;this.lines=null;toast(verified?t('posted',{s:sh}):t('saved'));this.render();if(verified)setTimeout(()=>waAfterPost(dt),1500)}catch(e){toast(t('saveFail'))}};
   $('#cDraft').onclick=()=>save(false);$('#cPost').onclick=()=>save(true);
   if(dayLocked(x,dt)){['cDraft','cPost'].forEach(i=>{const b=$('#'+i);if(b)b.disabled=true});$('#eBody').querySelector('.card').insertAdjacentHTML('afterbegin',`<div class="alert a">🔒 ${t('lockDay')}</div>`)}}};
 
@@ -2995,6 +2995,7 @@ mount(el){
   const cols=[['asOf','date','fsAsOf'],['birds','number','fsBirds'],['hatch','date','hatch'],['housed','number','fsHoused'],['cumEggs','number','fsCum'],...CATS.map(([k,l])=>['o_'+k,'number',l]),['breed','text','breed']];
   el.innerHTML=`${S.canSettings?'':`<div class="card muted">${t('onlyOwner')}</div>`}
     ${SEC.on()&&role()==='admin'?(S.secured?`<div class="alert g">🔒 ${t('secOn')}</div>`:`<div class="card"><h2>🔒 ${t('secT')}</h2><div class="muted">${t('secHelp')}</div><ol class="tiny" style="margin:8px 0 10px 18px">${t('secSteps')}</ol><button class="wide" id="secGo">🔒 ${t('secGo')}</button></div>`):''}
+    ${waCard()}
     ${role()==='admin'?`<div class="card"><h2>💾 ${t('bkT')}</h2><div class="muted">${t('bkHelp')}</div><label class="lg-keep" style="margin:10px 0"><input type="checkbox" id="bkPh"><span></span>${t('bkPh')}</label>${bkCloudLine()}<button class="wide" data-bk="1" style="margin-top:10px">💾 ${t('bkGo')}</button>${lastBk()?`<div class="tiny muted" style="margin-top:6px">${t('bkLast',{d:fmtDate(lastBk())})}</div>`:''}</div>
     ${role()==='admin'&&stoAvail()?`<div class="card"><h2>🖼️ ${t('stoT')}</h2>${S.farm.storageOn?`<div class="muted">${t('stoHelp')}</div><button class="wide ghost" id="stoMove" style="margin-top:8px">${t('stoGo')}</button><button class="small ghost" id="stoTog" style="margin-top:8px">${t('stoOff')}</button>`:`<div class="muted">${t('stoOffHelp')}</div><button class="small ghost" id="stoTog" style="margin-top:8px">${t('stoOnBtn')}</button>`}</div>`:''}
     <div class="card"><h2>🕘 ${t('audT')}</h2><div class="muted">${t('audHelp')}</div><div class="row" style="margin-top:8px"><input id="audQ" placeholder="${t('audSearch')}"><button class="small" id="audGo">${t('audLoad')}</button></div><div id="audList"></div></div>`:''}
@@ -3058,6 +3059,7 @@ mount(el){
     if(!name)return toast(t('needNameS'));if(!pin||pin.length<4)return toast(t('needPwd'));if(role_==='sup'&&!/^\d{4,6}$/.test(pin))return toast(t('needPin'));const veh=!!($('#nVeh')&&$('#nVeh').checked);if(!role_&&!mill&&!veh)return toast(t('needBranch'));
     if(S.staff.some(x=>uname(x)===user.toLowerCase()))return toast(t('userTaken'));
     try{await saveStaff([...S.staff,{id:uid('u'),name,user,role:role_,mill,pin,veh,...(role_==='sup'?{sheds:SHEDS.filter(z=>nSel.has(z))}:{})}]);nSel.clear();document.querySelectorAll('[data-ns]').forEach(c=>c.classList.remove('sel'));['nName','nUser','nPin'].forEach(k=>$('#'+k).value='');if($('#nVeh'))$('#nVeh').checked=false;$('#view')._dirty=false;toast(t('saved'));drawStaff()}catch(e){if(!(e&&e.code==='offline'))toast(t('couldNotSave'))}};
+  waBind(el);
   $('#logoIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();const u=URL.createObjectURL(f);
     img.onload=async()=>{const m=360,sc=Math.min(1,m/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
       c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);let d=c.toDataURL('image/png');if(d.length>180000)d=c.toDataURL('image/jpeg',.85);
@@ -3559,6 +3561,52 @@ bind(){const el=this.el;const rf=el.querySelector('#siRef');if(rf)rf.onclick=()=
     try{await putSetting('silo',{map});S.siloCfg={map};toast(t('siloSaved'))}catch(e){console.error(e);toast(t('saveFail'))}}}};
 Object.assign(I18N.en,{nav_vh:'Vehicles',vehAccess:'Vehicles access',vehAccessH:'Lets this user open Vehicles: loans and EMI, value, service bills and parts life. Management always has it.',nav_silo:'Silos',siloTitle:'Feed silos',siloWait:'Waiting for the first reading from Poultry Manager. The hourly job copies the silo weights here once its secrets are added.',siloUpd:'Updated {t} · hourly',siloLiveP:'Live',siloNeg:'Scale reads {k} kg – check',siloRef:'Refresh',siloLiveOk:'✓ Live weights loaded',siloLiveNo:'Live weights not available – showing the last hourly reading',siloIn:'Feed in silos',siloN:'{n} silos',siloUsedT:'Used today',siloUsedY:'Used yesterday',siloSoFar:'so far',siloLowK:'Low silos',siloLeft:'≈ {d} days left',siloLow:'Low – refill',siloSoon:'Refill soon',siloStale:'No signal',siloRefill:'Refilled',siloCmp:'Silo vs entered feed',siloCmpH:'Feed used by the silo scale compared with the feed the supervisor entered. More than 10% apart is shown in red.',siloMeas:'Silo (kg)',siloEnt:'Entered (kg)',siloDiff:'Difference',siloAll:'All silos',siloNow:'Now',siloSig:'last signal {t}',siloOpen:'Opening',siloUsed:'Used',siloClose:'Closing',siloTimes:'{n}×',siloReads:'{n} readings',siloVs:'{sh}: supervisor entered {e} · silo measured {m}',siloChk:'Check',siloUse14:'Daily use – 14 days',siloChart:'Silo weight through the day',siloNoDay:'No readings for this day.',siloNoData:'no data',siloSet:'Silo setup',siloSetH:'Link each silo to its shed. Capacity shows the fill %. The low alert warns when the silo falls below that weight (it also warns when less than 1.5 days of feed is left).',siloName:'Silo',siloCap:'Capacity (kg)',siloLowA:'Low alert (kg)',siloSaveSet:'Save silo setup',siloSaved:'✓ Silo setup saved'});
 Object.assign(I18N.ta,{nav_vh:'வாகனங்கள்',vehAccess:'வாகன அணுகல்',vehAccessH:'இந்த பயனர் வாகனங்கள் பகுதியை திறக்கலாம் – கடன், EMI, சர்வீஸ், உதிரிபாகங்கள்.',nav_silo:'சைலோ',siloTitle:'தீவன சைலோ',siloWait:'Poultry Manager-இலிருந்து முதல் அளவீட்டுக்காக காத்திருக்கிறது.',siloUpd:'{t} புதுப்பிக்கப்பட்டது · மணிக்கு ஒருமுறை',siloLiveP:'நேரலை',siloNeg:'எடை {k} கிலோ – சரிபார்க்கவும்',siloRef:'புதுப்பி',siloLiveOk:'✓ நேரலை எடை',siloLiveNo:'நேரலை கிடைக்கவில்லை – கடைசி அளவீடு',siloIn:'சைலோவில் தீவனம்',siloN:'{n} சைலோ',siloUsedT:'இன்று பயன்பாடு',siloUsedY:'நேற்று பயன்பாடு',siloSoFar:'இதுவரை',siloLowK:'குறைந்த சைலோ',siloLeft:'≈ {d} நாள் மீதம்',siloLow:'குறைவு – நிரப்பவும்',siloSoon:'விரைவில் நிரப்பவும்',siloStale:'சிக்னல் இல்லை',siloRefill:'நிரப்பப்பட்டது',siloCmp:'சைலோ vs பதிந்த தீவனம்',siloCmpH:'சைலோ எடை அளவு vs மேற்பார்வையாளர் பதிந்த தீவனம். 10%-க்கு மேல் வித்தியாசம் சிவப்பில்.',siloMeas:'சைலோ (கிலோ)',siloEnt:'பதிந்தது (கிலோ)',siloDiff:'வித்தியாசம்',siloAll:'அனைத்து சைலோ',siloNow:'இப்போது',siloSig:'கடைசி சிக்னல் {t}',siloOpen:'ஆரம்பம்',siloUsed:'பயன்பாடு',siloClose:'முடிவு',siloTimes:'{n}×',siloReads:'{n} அளவீடுகள்',siloVs:'{sh}: பதிந்தது {e} · சைலோ {m}',siloChk:'சரிபார்க்கவும்',siloUse14:'தினசரி பயன்பாடு – 14 நாள்',siloChart:'நாள் முழுவதும் சைலோ எடை',siloNoDay:'இந்த நாளுக்கு அளவீடு இல்லை.',siloNoData:'தரவு இல்லை',siloSet:'சைலோ அமைப்பு',siloSetH:'ஒவ்வொரு சைலோவையும் அதன் ஷெட்டுடன் இணைக்கவும்.',siloName:'சைலோ',siloCap:'கொள்ளளவு (கிலோ)',siloLowA:'குறைவு எச்சரிக்கை (கிலோ)',siloSaveSet:'சேமி',siloSaved:'✓ சேமிக்கப்பட்டது'});
+/* ===== WhatsApp: the day's report goes by itself to the set numbers once every shed is verified and posted (WhatsApp Business API via /api/wa-report) ===== */
+const waCfg=()=>S.wa||{};
+async function waLoad(){if(!db||S.waL)return;S.waL=1;try{db.doc('settings/wa').onSnapshot(s=>{S.wa=s.exists?s.data():{}},()=>{})}catch(e){}}
+/* the report as a PDF (English, so the PDF fonts can print it) */
+async function waPdf(dt){const L0=LANG;LANG='en';try{
+  if(!(window.jspdf&&window.jspdf.jsPDF))await xLd('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  const {jsPDF}=window.jspdf;if(!(jsPDF.API&&jsPDF.API.autoTable))await xLd('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
+  const doc=new jsPDF({unit:'pt',format:'a4'}),F=(await xFont(doc))?'nsr':'helvetica';XF=F==='nsr';const T=dayTotals(dt),R=S.calc[dt]||{},W=doc.internal.pageSize.getWidth();
+  doc.setFillColor(59,39,23);doc.rect(0,0,W,64,'F');doc.setTextColor(255);doc.setFont(F,'bold');doc.setFontSize(17);doc.text(xLat((S.farm.name||'NSR Poultry Farms')+' – Daily report'),36,30);
+  doc.setFont(F,'normal');doc.setFontSize(11);doc.text(xLat(fmtDate(dt)+' · verified '+T.verified+' of '+T.entered+' sheds'),36,50);doc.setTextColor(33,24,16);
+  const sum=[['Production',fS(T.tot)+' trays'],['Average production',(T.avgPct!=null?Math.round(T.avgPct)+'%':'–')+(T.stdPct!=null?' (standard '+Math.round(T.stdPct)+'%)':'')],
+    ...PCATS.map(([k,l])=>[t(l),(fT(T.prod[k])||'0')+' trays']),['Mortality',String(T.mort)],['Culls',String(T.culls)],['Birds sold',String(T.sold)],['Closing birds',fmtN(T.closeB)],
+    ['Sales (vehicle load)',fS(T.salesT)+' trays'],['Vehicle damage',(fT(T.vDam)||'0')+' trays'],['Shed damage',(fT(T.shDam)||'0')+' trays'],['Closing egg stock',fS(T.closeT)+' trays'],['Feed used',fmtN(T.feed)+' kg']];
+  doc.autoTable({startY:80,head:[['Farm total','']],body:sum.map(r=>r.map(xLat)),styles:{font:F,fontSize:10,cellPadding:4},headStyles:{fillColor:[176,138,62],textColor:255},columnStyles:{1:{halign:'right'}},theme:'grid',margin:{left:36,right:W/2+10}});
+  const party={};SHEDS.forEach(s=>((R[s]||{}).lines||[]).forEach(l=>{const p=l.p||'—';party[p]=(party[p]||0)+SK.reduce((a,k)=>a+num(l[k]),0)}));
+  if(Object.keys(party).length)doc.autoTable({startY:80,head:[['Sales by party','Trays']],body:Object.entries(party).map(([p,v])=>[xLat(p),fT(v)]),styles:{font:F,fontSize:10,cellPadding:4},headStyles:{fillColor:[176,138,62],textColor:255},columnStyles:{1:{halign:'right'}},theme:'grid',margin:{left:W/2+10,right:36}});
+  const rows=SHEDS.filter(s=>R[s]).map(s=>{const r=R[s];return [s,r.status==='ok'?'Verified':'Pending',isLayer(s)?fS(r.tot):'',r.pct!=null?Math.round(r.pct)+'%':'',r.stdPct!=null?Math.round(r.stdPct)+'%':'',r.pdif!=null?fP(r.pdif):'',String(r.mort||0),String(r.culls||0),fmtN(r.closeB),fmtN(r.feed)]});
+  doc.autoTable({startY:Math.max(doc.lastAutoTable.finalY,80+20*sum.length)+24,head:[['Shed','Status','Prod. trays','Prod %','Std %','P.DIF','Mort.','Culls','Closing birds','Feed kg']],body:rows.map(r=>r.map(xLat)),styles:{font:F,fontSize:9,cellPadding:3},headStyles:{fillColor:[59,39,23],textColor:255},columnStyles:{2:{halign:'right'},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'right'},7:{halign:'right'},8:{halign:'right'},9:{halign:'right'}},theme:'striped',margin:{left:36,right:36},
+    didParseCell:d=>{if(d.section==='body'&&d.column.index===5&&String(d.cell.raw).startsWith('-'))d.cell.styles.textColor=[192,57,43]}});
+  const {declined}=computeAlerts(dt);if(declined.length){doc.setFontSize(10);doc.setTextColor(192,57,43);doc.text(xLat('Production drop: '+declined.join(', ')),36,doc.lastAutoTable.finalY+20)}
+  doc.setFontSize(8);doc.setTextColor(120);doc.text(xLat('Sent automatically by the NSR app after Verify & post · '+new Date().toLocaleString('en-IN')),36,doc.internal.pageSize.getHeight()-24);
+  const b=doc.output('arraybuffer'),u=new Uint8Array(b);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));
+  return {b64:btoa(s),vars:[fmtDate(dt),fS(T.tot),T.avgPct!=null?String(Math.round(T.avgPct)):'–',String(T.mort),fmtN(T.closeB)],T}}finally{LANG=L0}}
+async function waSend(dt,force){
+  if(!db||!window.firebase)return {err:'offline'};const u=firebase.auth().currentUser;if(!u||u.isAnonymous)return {err:'sign-in'};
+  const p=await waPdf(dt);
+  const r=await fetch('/api/wa-report',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+await u.getIdToken()},body:JSON.stringify({date:dt,force:!!force,pdf:p.b64,vars:p.vars,filename:'NSR-daily-report-'+dt+'.pdf'})});
+  let j={};try{j=await r.json()}catch(e){}if(!r.ok)j.err=j.error||('HTTP '+r.status);return j}
+/* after a shed is posted: send once, when every shed with an entry that day is verified */
+async function waAfterPost(dt){try{const c=waCfg();if(!c.on||!(c.to||[]).length)return;const T=dayTotals(dt);if(!T.entered||T.verified<T.entered)return;
+  const j=await waSend(dt,false);if(j.skipped)return;toast(j.sent?t('waSentT',{n:j.sent}):t('waFailT',{e:j.err||((j.failed||[])[0]||{}).error||'?'}))}catch(e){console.warn('wa',e)}}
+function waCard(){if(role()!=='admin')return '';const c=waCfg();
+  return `<div class="card"><h2>💬 ${t('waT')}</h2><div class="muted">${t('waHelp')}</div>
+   <label class="lg-keep" style="margin:10px 0"><input type="checkbox" id="waOn" ${c.on?'checked':''}><span></span>${t('waOn')}</label>
+   <label class="f">${t('waTo')}</label><textarea id="waTo" rows="3" placeholder="919876543210, 919812345678">${esc((c.to||[]).join(', '))}</textarea>
+   <div class="tiny muted">${t('waToH')}</div>
+   <div class="flex" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button id="waSave">💾 ${t('save')}</button><input type="date" id="waD" value="${today()}" max="${today()}" style="max-width:170px"><button class="ghost" id="waNow">📤 ${t('waNow')}</button></div>
+   <div class="tiny muted" id="waSt" style="margin-top:8px"></div></div>`}
+function waBind(el){const sv=el.querySelector('#waSave');if(!sv)return;
+  const st=el.querySelector('#waSt');db&&db.collection('wa').orderBy('at','desc').limit(5).get().then(q=>{st.innerHTML=q.docs.map(d=>{const x=d.data();return `${esc(fmtDate(d.id))}: ${x.sent?t('waSentN',{n:x.sent}):''}${(x.failed||[]).length?' · '+t('waFailN',{n:x.failed.length}):''} · ${esc(x.by||'')}`}).join('<br>')}).catch(()=>{});
+  sv.onclick=async()=>{const to=[...new Set(el.querySelector('#waTo').value.split(/[\s,;]+/).map(x=>x.replace(/\D/g,'')).filter(x=>x.length>=10).map(x=>x.length===10?'91'+x:x))];
+    try{await putSetting('wa',{on:el.querySelector('#waOn').checked,to});S.wa={on:el.querySelector('#waOn').checked,to};el.querySelector('#waTo').value=to.join(', ');toast(t('waSaved',{n:to.length}))}catch(e){toast(t('saveFail'))}};
+  el.querySelector('#waNow').onclick=async e=>{const b=e.target;b.disabled=true;const lab=b.textContent;b.textContent='…';try{const j=await waSend(el.querySelector('#waD').value||today(),true);toast(j.sent?t('waSentT',{n:j.sent}):t('waFailT',{e:j.err||((j.failed||[])[0]||{}).error||'?'}))}catch(er){toast(t('waFailT',{e:er.message}))}b.disabled=false;b.textContent=lab}}
+Object.assign(I18N.en,{waT:'WhatsApp daily report',waHelp:'When every shed of the day is verified and posted, the report (PDF + summary) is sent by itself to these WhatsApp numbers through the WhatsApp Business API. Sent once per day; use "Send now" to send again.',waOn:'Send automatically after Verify & post',waTo:'WhatsApp numbers',waToH:'With country code, separated by commas. 10-digit Indian numbers get 91 added.',waNow:'Send now',waSaved:'✓ Saved · {n} number(s)',waSentT:'✓ Daily report sent on WhatsApp to {n}',waFailT:'WhatsApp report not sent: {e}',waSentN:'sent to {n}',waFailN:'{n} failed'});
+Object.assign(I18N.ta,{waT:'WhatsApp தினசரி அறிக்கை',waHelp:'அன்றைய அனைத்து ஷெட்களும் சரிபார்க்கப்பட்டதும், அறிக்கை இந்த WhatsApp எண்களுக்கு தானாக அனுப்பப்படும்.',waOn:'சரிபார்த்ததும் தானாக அனுப்பு',waTo:'WhatsApp எண்கள்',waToH:'நாட்டுக் குறியீட்டுடன், காற்புள்ளியால் பிரிக்கவும்.',waNow:'இப்போது அனுப்பு',waSaved:'✓ சேமிக்கப்பட்டது · {n} எண்',waSentT:'✓ WhatsApp-ல் {n} பேருக்கு அனுப்பப்பட்டது',waFailT:'WhatsApp அனுப்பவில்லை: {e}',waSentN:'{n} பேருக்கு',waFailN:'{n} தோல்வி'});
+
 V.wt={sh:null,
 mount(el){this.el=el;wtWatch();this.draw()},
 update(){if(this.el&&document.body.contains(this.el)&&!(document.activeElement&&this.el.contains(document.activeElement)&&document.activeElement.tagName==='INPUT'))this.draw()},
@@ -3812,7 +3860,7 @@ async function boot(){
   let d=null,u=null;
   if(window.claude&&window.claude.use){try{[d,u]=await Promise.all([window.claude.use('db'),window.claude.use('user')])}catch(e){}}
   if(!d){S.mode='local';S.canSettings=true;S.staffLoaded=true;loadLocal();ready();return}
-  db=d;userCap=u;S.mode='cloud';compute();
+  db=d;userCap=u;S.mode='cloud';compute();waLoad();
   try{S.isOwner=u?u.isOwner():false;S.canSettings=u?u.canEdit():false;const me=u&&await u.me();S.myName=(me&&me.name)||''}catch(e){}
   const banner=$('#banner');let first=false;
   const timer=setTimeout(()=>{banner.style.display='block';banner.innerHTML=`${esc(t(S.staffLoaded?'savedData':'cantReach'))} <button class="small" style="margin-left:6px" onclick="location.reload()">↻ ${esc(t('retry')||'Retry')}</button>`;if(!first){first=true;ready()}},20000);
