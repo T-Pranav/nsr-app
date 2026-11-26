@@ -12,7 +12,6 @@ gcloud services enable iam.googleapis.com iamcredentials.googleapis.com sts.goog
 echo "2/4 Creating a rules-only account (it cannot read farm data)…"
 gcloud iam service-accounts describe $SA >/dev/null 2>&1 || gcloud iam service-accounts create nsr-deploy --display-name="NSR rules publisher"
 gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:$SA" --role=roles/firebaserules.admin --condition=None >/dev/null
-gcloud projects add-iam-policy-binding $PROJECT --member="serviceAccount:$SA" --role=roles/serviceusage.serviceUsageConsumer --condition=None >/dev/null
 echo "3/4 Trusting ONLY your GitHub repository $REPO…"
 gcloud iam workload-identity-pools describe github --location=global >/dev/null 2>&1 || \
   gcloud iam workload-identity-pools create github --location=global --display-name="GitHub"

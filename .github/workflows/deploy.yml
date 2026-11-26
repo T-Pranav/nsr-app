@@ -52,11 +52,15 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       # database and photo-storage rules go live with the app (keyless sign-in, rules-only account)
       - name: Sign in to Google (keyless)
+        id: gcp
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && env.HAS_GCP == 'true'
         uses: google-github-actions/auth@v2
         with:
+          token_format: access_token
           workload_identity_provider: ${{ secrets.GCP_DEPLOY_PROVIDER }}
           service_account: ${{ secrets.GCP_DEPLOY_SA }}
       - name: Publish database and storage rules
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && env.HAS_GCP == 'true'
-        run: npx -y firebase-tools@13 deploy --only firestore:rules,storage --project nsr-poultry-farms --non-interactive
+        run: bash publish-rules.sh
+        env:
+          ACCESS_TOKEN: ${{ steps.gcp.outputs.access_token }}

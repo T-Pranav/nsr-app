@@ -34,7 +34,7 @@ Still pasted by hand from `firestore.rules` into Firebase → Firestore → Rule
 - Functions are only published by this pipeline, not by dragging a zip onto Netlify.
 
 ## Rules publish themselves
-- On every push to `main`, after the site deploys, `firestore.rules` and `storage.rules` are published to Firebase.
+- On every push to `main`, after the site deploys, `publish-rules.sh` publishes `firestore.rules` and `storage.rules` through the Firebase Rules API.
 - One-time setup: run `setup-deploy.sh` in Google Cloud Shell, then add `GCP_DEPLOY_PROVIDER` and `GCP_DEPLOY_SA` as repository secrets.
 - The `nsr-deploy` account can only change rules. It cannot read farm data. Only the `main` branch of this repository can use it.
 - Without those two secrets the step is skipped and the site still deploys.
