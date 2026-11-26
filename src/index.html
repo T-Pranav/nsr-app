@@ -3563,7 +3563,7 @@ Object.assign(I18N.en,{nav_vh:'Vehicles',vehAccess:'Vehicles access',vehAccessH:
 Object.assign(I18N.ta,{nav_vh:'வாகனங்கள்',vehAccess:'வாகன அணுகல்',vehAccessH:'இந்த பயனர் வாகனங்கள் பகுதியை திறக்கலாம் – கடன், EMI, சர்வீஸ், உதிரிபாகங்கள்.',nav_silo:'சைலோ',siloTitle:'தீவன சைலோ',siloWait:'Poultry Manager-இலிருந்து முதல் அளவீட்டுக்காக காத்திருக்கிறது.',siloUpd:'{t} புதுப்பிக்கப்பட்டது · மணிக்கு ஒருமுறை',siloLiveP:'நேரலை',siloNeg:'எடை {k} கிலோ – சரிபார்க்கவும்',siloRef:'புதுப்பி',siloLiveOk:'✓ நேரலை எடை',siloLiveNo:'நேரலை கிடைக்கவில்லை – கடைசி அளவீடு',siloIn:'சைலோவில் தீவனம்',siloN:'{n} சைலோ',siloUsedT:'இன்று பயன்பாடு',siloUsedY:'நேற்று பயன்பாடு',siloSoFar:'இதுவரை',siloLowK:'குறைந்த சைலோ',siloLeft:'≈ {d} நாள் மீதம்',siloLow:'குறைவு – நிரப்பவும்',siloSoon:'விரைவில் நிரப்பவும்',siloStale:'சிக்னல் இல்லை',siloRefill:'நிரப்பப்பட்டது',siloCmp:'சைலோ vs பதிந்த தீவனம்',siloCmpH:'சைலோ எடை அளவு vs மேற்பார்வையாளர் பதிந்த தீவனம். 10%-க்கு மேல் வித்தியாசம் சிவப்பில்.',siloMeas:'சைலோ (கிலோ)',siloEnt:'பதிந்தது (கிலோ)',siloDiff:'வித்தியாசம்',siloAll:'அனைத்து சைலோ',siloNow:'இப்போது',siloSig:'கடைசி சிக்னல் {t}',siloOpen:'ஆரம்பம்',siloUsed:'பயன்பாடு',siloClose:'முடிவு',siloTimes:'{n}×',siloReads:'{n} அளவீடுகள்',siloVs:'{sh}: பதிந்தது {e} · சைலோ {m}',siloChk:'சரிபார்க்கவும்',siloUse14:'தினசரி பயன்பாடு – 14 நாள்',siloChart:'நாள் முழுவதும் சைலோ எடை',siloNoDay:'இந்த நாளுக்கு அளவீடு இல்லை.',siloNoData:'தரவு இல்லை',siloSet:'சைலோ அமைப்பு',siloSetH:'ஒவ்வொரு சைலோவையும் அதன் ஷெட்டுடன் இணைக்கவும்.',siloName:'சைலோ',siloCap:'கொள்ளளவு (கிலோ)',siloLowA:'குறைவு எச்சரிக்கை (கிலோ)',siloSaveSet:'சேமி',siloSaved:'✓ சேமிக்கப்பட்டது'});
 /* ===== WhatsApp: the day's report goes by itself to the set numbers once every shed is verified and posted (WhatsApp Business API via /api/wa-report) ===== */
 const waCfg=()=>S.wa||{};
-async function waLoad(){if(!db||S.waL)return;S.waL=1;try{db.doc('settings/wa').onSnapshot(s=>{S.wa=s.exists?s.data():{}},()=>{})}catch(e){}}
+async function waGet(){if(!db)return waCfg();try{const s=await fget(db.doc('settings/wa'));S.wa=s.exists?s.data():{}}catch(e){}return waCfg()}
 /* the report as a PDF (English, so the PDF fonts can print it) */
 async function waPdf(dt){const L0=LANG;LANG='en';try{
   if(!(window.jspdf&&window.jspdf.jsPDF))await xLd('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
@@ -3590,7 +3590,7 @@ async function waSend(dt,force){
   const r=await fetch('/api/wa-report',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+await u.getIdToken()},body:JSON.stringify({date:dt,force:!!force,pdf:p.b64,vars:p.vars,filename:'NSR-daily-report-'+dt+'.pdf'})});
   let j={};try{j=await r.json()}catch(e){}if(!r.ok)j.err=j.error||('HTTP '+r.status);return j}
 /* after a shed is posted: send once, when every shed with an entry that day is verified */
-async function waAfterPost(dt){try{const c=waCfg();if(!c.on||!(c.to||[]).length)return;const T=dayTotals(dt);if(!T.entered||T.verified<T.entered)return;
+async function waAfterPost(dt){try{const c=await waGet();if(!c.on||!(c.to||[]).length)return;const T=dayTotals(dt);if(!T.entered||T.verified<T.entered)return;
   const j=await waSend(dt,false);if(j.skipped)return;toast(j.sent?t('waSentT',{n:j.sent}):t('waFailT',{e:j.err||((j.failed||[])[0]||{}).error||'?'}))}catch(e){console.warn('wa',e)}}
 function waCard(){if(role()!=='admin')return '';const c=waCfg();
   return `<div class="card"><h2>💬 ${t('waT')}</h2><div class="muted">${t('waHelp')}</div>
@@ -3600,11 +3600,12 @@ function waCard(){if(role()!=='admin')return '';const c=waCfg();
    <div class="flex" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button id="waSave">💾 ${t('save')}</button><input type="date" id="waD" value="${today()}" max="${today()}" style="max-width:170px"><button class="ghost" id="waNow">📤 ${t('waNow')}</button></div>
    <div class="tiny muted" id="waSt" style="margin-top:8px"></div></div>`}
 function waBind(el){const sv=el.querySelector('#waSave');if(!sv)return;
-  const st=el.querySelector('#waSt');db&&db.collection('wa').orderBy('at','desc').limit(5).get().then(q=>{st.innerHTML=q.docs.map(d=>{const x=d.data();return `${esc(fmtDate(d.id))}: ${x.sent?t('waSentN',{n:x.sent}):''}${(x.failed||[]).length?' · '+t('waFailN',{n:x.failed.length}):''} · ${esc(x.by||'')}`}).join('<br>')}).catch(()=>{});
-  sv.onclick=async()=>{const to=[...new Set(el.querySelector('#waTo').value.split(/[\s,;]+/).map(x=>x.replace(/\D/g,'')).filter(x=>x.length>=10).map(x=>x.length===10?'91'+x:x))];
+  waGet().then(c=>{const o=el.querySelector('#waOn'),to=el.querySelector('#waTo');if(o&&to&&document.activeElement!==to){o.checked=!!c.on;to.value=(c.to||[]).join(', ')}});
+  const st=el.querySelector('#waSt');try{const c=db&&db.collection('wa');(c&&c.orderBy?c.orderBy('at','desc').limit(5):c)&&(c.orderBy?c.orderBy('at','desc').limit(5):c).get().then(q=>{st.innerHTML=q.docs.slice(0,5).map(d=>{const x=d.data();return `${esc(fmtDate(d.id))}: ${x.sent?t('waSentN',{n:x.sent}):''}${(x.failed||[]).length?' · '+t('waFailN',{n:x.failed.length}):''} · ${esc(x.by||'')}`}).join('<br>')}).catch(()=>{})}catch(e){}
+  sv.onclick=async()=>{const to=[...new Set(el.querySelector('#waTo').value.split(/[,;\n]+/).map(x=>x.replace(/\D/g,'')).filter(x=>x.length>=10).map(x=>x.length===10?'91'+x:x))];
     try{await putSetting('wa',{on:el.querySelector('#waOn').checked,to});S.wa={on:el.querySelector('#waOn').checked,to};el.querySelector('#waTo').value=to.join(', ');toast(t('waSaved',{n:to.length}))}catch(e){toast(t('saveFail'))}};
   el.querySelector('#waNow').onclick=async e=>{const b=e.target;b.disabled=true;const lab=b.textContent;b.textContent='…';try{const j=await waSend(el.querySelector('#waD').value||today(),true);toast(j.sent?t('waSentT',{n:j.sent}):t('waFailT',{e:j.err||((j.failed||[])[0]||{}).error||'?'}))}catch(er){toast(t('waFailT',{e:er.message}))}b.disabled=false;b.textContent=lab}}
-Object.assign(I18N.en,{waT:'WhatsApp daily report',waHelp:'When every shed of the day is verified and posted, the report (PDF + summary) is sent by itself to these WhatsApp numbers through the WhatsApp Business API. Sent once per day; use "Send now" to send again.',waOn:'Send automatically after Verify & post',waTo:'WhatsApp numbers',waToH:'With country code, separated by commas. 10-digit Indian numbers get 91 added.',waNow:'Send now',waSaved:'✓ Saved · {n} number(s)',waSentT:'✓ Daily report sent on WhatsApp to {n}',waFailT:'WhatsApp report not sent: {e}',waSentN:'sent to {n}',waFailN:'{n} failed'});
+Object.assign(I18N.en,{waT:'WhatsApp daily report',waHelp:'When every shed of the day is verified and posted, the report (PDF + summary) is sent by itself to these WhatsApp numbers through the WhatsApp Business API. Sent once per day; use "Send now" to send again.',waOn:'Send automatically after Verify & post',waTo:'WhatsApp numbers',waToH:'With country code, one per line or separated by commas. 10-digit Indian numbers get 91 added.',waNow:'Send now',waSaved:'✓ Saved · {n} number(s)',waSentT:'✓ Daily report sent on WhatsApp to {n}',waFailT:'WhatsApp report not sent: {e}',waSentN:'sent to {n}',waFailN:'{n} failed'});
 Object.assign(I18N.ta,{waT:'WhatsApp தினசரி அறிக்கை',waHelp:'அன்றைய அனைத்து ஷெட்களும் சரிபார்க்கப்பட்டதும், அறிக்கை இந்த WhatsApp எண்களுக்கு தானாக அனுப்பப்படும்.',waOn:'சரிபார்த்ததும் தானாக அனுப்பு',waTo:'WhatsApp எண்கள்',waToH:'நாட்டுக் குறியீட்டுடன், காற்புள்ளியால் பிரிக்கவும்.',waNow:'இப்போது அனுப்பு',waSaved:'✓ சேமிக்கப்பட்டது · {n} எண்',waSentT:'✓ WhatsApp-ல் {n} பேருக்கு அனுப்பப்பட்டது',waFailT:'WhatsApp அனுப்பவில்லை: {e}',waSentN:'{n} பேருக்கு',waFailN:'{n} தோல்வி'});
 
 V.wt={sh:null,
@@ -3860,7 +3861,7 @@ async function boot(){
   let d=null,u=null;
   if(window.claude&&window.claude.use){try{[d,u]=await Promise.all([window.claude.use('db'),window.claude.use('user')])}catch(e){}}
   if(!d){S.mode='local';S.canSettings=true;S.staffLoaded=true;loadLocal();ready();return}
-  db=d;userCap=u;S.mode='cloud';compute();waLoad();
+  db=d;userCap=u;S.mode='cloud';compute();
   try{S.isOwner=u?u.isOwner():false;S.canSettings=u?u.canEdit():false;const me=u&&await u.me();S.myName=(me&&me.name)||''}catch(e){}
   const banner=$('#banner');let first=false;
   const timer=setTimeout(()=>{banner.style.display='block';banner.innerHTML=`${esc(t(S.staffLoaded?'savedData':'cantReach'))} <button class="small" style="margin-left:6px" onclick="location.reload()">↻ ${esc(t('retry')||'Retry')}</button>`;if(!first){first=true;ready()}},20000);
