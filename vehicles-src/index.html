@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#141210">
 <link rel="manifest" href="../manifest.json">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
-<title>Vehicles · NSR Poultry Farms</title>
+<title>Fleet management · NSR Poultry Farms</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -78,7 +78,7 @@ dl.facts dt{font-size:13px;color:var(--mute)}dl.facts dd{margin:0;font-weight:50
 </style><script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script></head>
 <body>
 <header class="band"><div class="wrap">
-  <div class="brand"><div class="logo">NSR</div><div><h1>Vehicles</h1><div class="sub">NSR Poultry Farms · loans, value, service and parts register</div></div></div>
+  <div class="brand"><div class="logo">NSR</div><div><h1>Fleet management</h1><div class="sub">Vehicles, loans and EMI, fuel, service and parts register</div></div></div>
   <div class="row" style="align-items:center"><div class="sub" id="sync">Connecting…</div><a class="back" href="../">← NSR app</a></div>
 </div></header>
 <main class="band" style="padding-top:20px"><div class="wrap" id="main">
@@ -440,7 +440,7 @@ setTab();
 
 /* ---------- connect to the NSR farm database ---------- */
 const ld=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)});
-function lockOut(msg){window.__vhLocked=true;$('sync').textContent='';$('main').innerHTML=`<div class="lock card"><h2>🚚 Vehicles</h2><p>${msg}</p><p><a class="btn" href="../" style="text-decoration:none;display:inline-block">← Open NSR app</a></p></div>`}
+function lockOut(msg){window.__vhLocked=true;$('sync').textContent='';$('main').innerHTML=`<div class="lock card"><h2>🚚 Fleet management</h2><p>${msg}</p><p><a class="btn" href="../" style="text-decoration:none;display:inline-block">← Open NSR app</a></p></div>`}
 /* Management, or a user Management has given Vehicles access to, signed in to the NSR app on this phone */
 async function vhConnect(){
   try{await ld('../firebase-config.js')}catch(e){return null}
@@ -453,7 +453,7 @@ async function vhConnect(){
   let sess=null;try{sess=sessionStorage.getItem('lf-session')||(localStorage.getItem('lf-remember')==='1'?localStorage.getItem('lf-session'):null)}catch(e){}
   let me=null;if(cu&&!cu.isAnonymous){try{const d=await f.doc('users/'+cu.uid).get();me=d.exists?d.data():null}catch(e){}}
   const ok=!!sess&&(sess==='owner'||!!(me&&(me.role==='admin'||me.veh)));
-  if(!ok){lockOut(sess?'Your login does not have Vehicles access. Ask Management to turn on <b>Vehicles access</b> for you in Settings → Users.':'Please log in to the NSR app first, then open Vehicles.');return false}
+  if(!ok){lockOut(sess?'Your login does not have Fleet management access. Ask Management to turn on <b>Fleet management access</b> for you in Settings → Users.':'Please log in to the NSR app first, then open Fleet management.');return false}
   const st=firebase.storage();
   AS={async upload(file,folder){
     const type=file.type||(/\.pdf$/i.test(file.name)?'application/pdf':'image/jpeg');
