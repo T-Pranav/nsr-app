@@ -51,6 +51,7 @@ service cloud.firestore {
     // vehicles: loans, value, service and parts register
     match /veh_vehicles/{id}   { allow read, write: if canVeh(); }
     match /veh_services/{id}   { allow read, write: if canVeh(); }
+    match /veh_fuel/{id}       { allow read, write: if canVeh(); }
     // feed silos: copied hourly by the GitHub job (server account, bypasses rules); staff read only
     match /silo/{id}           { allow read: if isStaff(); allow write: if false; }
     match /wt/{id}             { allow read, create, update: if isLayer(); allow delete: if isOffice(); }

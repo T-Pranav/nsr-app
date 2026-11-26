@@ -38,6 +38,7 @@ jobs:
               s=open(f).read(); open('/tmp/'+f.replace('/','_')+'.js','w').write('\n'.join(re.findall(r'<script>(.*?)</script>',s,re.S)))
           PY
           for f in /tmp/app_*.js; do node --check "$f"; done
+          node --check vehicles-src/sfparse.js
       - name: Deploy test copy
         if: github.ref != 'refs/heads/main'
         run: npx -y netlify-cli@17 deploy --dir=app --functions=netlify/functions --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --alias "test-$(echo ${GITHUB_HEAD_REF:-$GITHUB_REF_NAME} | tr -c 'a-zA-Z0-9' '-' | cut -c1-30)" --message "${{ github.sha }}"

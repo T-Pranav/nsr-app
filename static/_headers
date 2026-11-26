@@ -13,3 +13,9 @@
   Cache-Control: no-cache
 /feedmill/index.html
   Cache-Control: no-cache
+/vehicles/index.html
+  Cache-Control: no-cache
+/vehicles/sfparse.js
+  Cache-Control: no-cache
+/vehicles/vendor/*
+  Content-Type: text/javascript; charset=utf-8

@@ -84,7 +84,7 @@ dl.facts dt{font-size:13px;color:var(--mute)}dl.facts dd{margin:0;font-weight:50
 <main class="band" style="padding-top:20px"><div class="wrap" id="main">
   <div class="kpis" id="kpis"></div>
   <nav id="tabs">
-    <a href="#fleet" data-t="fleet">Fleet</a><a href="#loans" data-t="loans">Loans &amp; EMI</a><a href="#service" data-t="service">Service log</a><a href="#parts" data-t="parts">Parts life</a><a href="#rates" data-t="rates">Rate history &amp; brands</a>
+    <a href="#fleet" data-t="fleet">Fleet</a><a href="#loans" data-t="loans">Loans &amp; EMI</a><a href="#service" data-t="service">Service log</a><a href="#parts" data-t="parts">Parts life</a><a href="#rates" data-t="rates">Rate history &amp; brands</a><a href="#fuel" data-t="fuel">Fuel</a>
   </nav>
   <section id="view"></section>
 </div></main>
@@ -92,9 +92,10 @@ dl.facts dt{font-size:13px;color:var(--mute)}dl.facts dd{margin:0;font-weight:50
 <div id="toast"></div>
 <datalist id="dl-parts"></datalist><datalist id="dl-brands"></datalist><datalist id="dl-garage"></datalist><datalist id="dl-pos"></datalist>
 <div class="ov lb" id="lb"><div class="lbin"><div class="row" style="justify-content:flex-end;margin-bottom:8px"><a class="btn" id="lbOpen" href="#" target="_blank" rel="noopener" style="background:#fff;color:#141210;text-decoration:none">Open full size</a><button data-a="lbClose" style="background:#fff;color:#141210">Close</button></div><img id="lbImg" alt="Bill"></div></div>
+<script src="sfparse.js"></script>
 <script>
 {
-const S={v:[],s:[],tab:'fleet',modal:null,q:'',fv:'',part:''};
+const S={v:[],s:[],f:[],fm:'',tab:'fleet',modal:null,q:'',fv:'',part:''};
 let db=null;
 const LS='nsr-vehicles-v1';
 const TYPES=['Lorry','Egg van','Feed truck','Tractor','Pickup','Car','Two-wheeler','JCB / Loader','Other'];
@@ -121,9 +122,9 @@ const toast=t=>{const e=$('toast');e.textContent=t;e.style.display='block';clear
 const bu=b=>b.url||('/_blob/'+encodeURIComponent(b.id));
 
 /* ---------- storage ---------- */
-function lsSave(){try{localStorage.setItem(LS,JSON.stringify({v:S.v,s:S.s}))}catch(e){}}
-function lsLoad(){try{const o=JSON.parse(localStorage.getItem(LS)||'{}');S.v=o.v||[];S.s=o.s||[]}catch(e){}}
-const colArr=c=>c==='vehicles'?S.v:S.s;
+function lsSave(){try{localStorage.setItem(LS,JSON.stringify({v:S.v,s:S.s,f:S.f}))}catch(e){}}
+function lsLoad(){try{const o=JSON.parse(localStorage.getItem(LS)||'{}');S.v=o.v||[];S.s=o.s||[];S.f=o.f||[]}catch(e){}}
+const colArr=c=>c==='vehicles'?S.v:c==='fuel'?S.f:S.s;
 async function put(col,obj){
   if(db){const{id,...body}=obj;try{await db.collection(col).doc(id).set(JSON.parse(JSON.stringify(body)))}catch(e){toast('Could not save: '+(e.message||e.code))}return}
   const a=colArr(col),i=a.findIndex(x=>x.id===obj.id);i>=0?a[i]=obj:a.push(obj);lsSave();render();
@@ -183,7 +184,8 @@ const tag=(t,c)=>`<span class="tag ${c}">${h(t)}</span>`;
 function kpis(){
   let val=0,rem=0,prin=0,od=0,odn=0;for(const v of S.v){val+=value(v).cur;const l=loan(v);if(l){rem+=l.remaining;prin+=l.principal;od+=l.overdue;odn+=l.overdueN}}
   const pd=current().map(lifeOf).filter(x=>x.st!=='ok').length,dc=S.v.reduce((a,v)=>a+docAlerts(v).length,0);
-  $('kpis').innerHTML=[[S.v.length,'Vehicles'],[rs(val),'Fleet value today'],[rs(rem),`Loan balance payable · principal ${rs(prin)}`],[rs(od),`Overdue EMI (${odn})`,od>0],[pd,'Parts due or overdue',pd>0],[dc,'Papers expiring ≤ 30 days',dc>0]]
+  const fmth=S.f.filter(f=>mon(f.date)===today().slice(0,7)).reduce((a,f)=>a+num(f.amount),0);
+  $('kpis').innerHTML=[[S.v.length,'Vehicles'],[rs(fmth),'Fuel this month'],[rs(val),'Fleet value today'],[rs(rem),`Loan balance payable · principal ${rs(prin)}`],[rs(od),`Overdue EMI (${odn})`,od>0],[pd,'Parts due or overdue',pd>0],[dc,'Papers expiring ≤ 30 days',dc>0]]
     .map(([b,s,hot])=>`<div class="kpi${hot?' hot':''}"><b>${h(b)}</b><span>${h(s)}</span></div>`).join('');
 }
 function fleet(){
@@ -229,6 +231,62 @@ function rates(){
   <div class="sec"><h3>Purchase history</h3><table class="stack"><thead><tr><th>Date</th><th>Vehicle</th><th>Brand</th><th class="n">Qty</th><th class="n">Rate</th><th class="n">Change</th><th class="n">Lasted</th></tr></thead><tbody>${hist.map((x,i)=>{const prev=hist[i+1],ch=prev&&prev.rate?(x.rate-prev.rate)/prev.rate*100:null;return `<tr><td>${fd(x.date)}</td><td>${h(vName(vById(x.vid)))}${x.pos?`<br><span class="t-mute">${h(x.pos)}</span>`:''}</td><td>${h(x.brand)}</td><td class="n">${x.qty}</td><td class="n">${rs(x.rate)}</td><td class="n ${ch>0?'t-over':ch<0?'t-ok':''}">${ch===null?'—':(ch>0?'+':'')+ch.toFixed(1)+'%'}</td><td class="n">${x.replaced?kmf(x.actualKm):'In use'}</td></tr>`}).join('')}</tbody></table></div>`;
 }
 
+
+/* ---------- fuel: BPCL SmartFleet statements + manual fills ---------- */
+const normReg=r=>String(r||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+const vByReg=r=>S.v.find(v=>normReg(v.reg)===normReg(r));
+const vByCard=c=>S.v.find(v=>(v.cards||[]).includes(c));
+const fv=f=>vById(f.vid)?f.vid:((vByReg(f.reg)||vByCard(f.card)||{}).id||'');
+const mon=d=>d.slice(0,7),monName=m=>m?new Date(m+'-01T00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'}):'';
+const lit=n=>(+n||0).toLocaleString('en-IN',{maximumFractionDigits:1})+' L';
+/* km per litre between fills that both have an odometer reading (full-to-full is most accurate) */
+function kmpl(vid){const a=S.f.filter(f=>fv(f)===vid&&num(f.odo)>0).sort((x,y)=>(x.date+x.time)<(y.date+y.time)?-1:1),o={};
+  for(let i=1;i<a.length;i++){const km=num(a[i].odo)-num(a[i-1].odo);if(km>0&&num(a[i].litres)>0)o[a[i].id]=km/num(a[i].litres)}return o}
+function fuelMonths(){return [...new Set(S.f.map(f=>mon(f.date)))].sort().reverse()}
+function fuel(){
+  const ms=fuelMonths();if(!S.fm||!ms.includes(S.fm))S.fm=ms[0]||today().slice(0,7);
+  const L=S.f.filter(f=>mon(f.date)===S.fm),tl=L.reduce((a,f)=>a+num(f.litres),0),ta=L.reduce((a,f)=>a+num(f.amount),0),un=L.filter(f=>!fv(f));
+  const by={};for(const f of L){const k=fv(f)||('?'+f.reg);const b=by[k]||(by[k]={vid:fv(f),reg:f.reg,n:0,l:0,a:0,eff:[]});b.n++;b.l+=num(f.litres);b.a+=num(f.amount)}
+  for(const b of Object.values(by))if(b.vid){const e=kmpl(b.vid);for(const f of L)if(fv(f)===b.vid&&e[f.id])b.eff.push(e[f.id])}
+  const rows=Object.values(by).sort((a,b)=>b.a-a.a);
+  return `<div class="bar"><div class="row"><select id="fm" style="max-width:220px">${(ms.length?ms:[S.fm]).map(m=>`<option value="${m}"${m===S.fm?' selected':''}>${monName(m)}</option>`).join('')}</select></div>
+   <div class="row"><label class="btn" style="display:inline-flex;align-items:center;gap:8px;font-size:15px">⬆ Upload SmartFleet statement (PDF)<input type="file" id="sfFile" accept="application/pdf,.pdf" style="position:absolute;opacity:0;width:1px;height:1px"></label><button class="pri" data-a="addF">+ Add fill (other bunk)</button></div></div>
+  <div class="kpis" style="margin-bottom:14px">${[[lit(tl),'Fuel in '+monName(S.fm)],[rs(ta),'Fuel cost'],[tl?'₹'+(ta/tl).toFixed(2):'—','Average rate / litre'],[L.length,'Fills']].map(([b,x])=>`<div class="kpi"><b>${h(b)}</b><span>${h(x)}</span></div>`).join('')}</div>
+  ${un.length?`<p class="note t-over">${un.length} fill${un.length>1?'s':''} for vehicles not in the fleet: ${[...new Set(un.map(f=>f.reg||f.card))].map(h).join(', ')}. Add them under Fleet with the same number and they link automatically.</p>`:''}
+  ${rows.length?`<table class="stack"><thead><tr><th>Vehicle</th><th class="n">Fills</th><th class="n">Litres</th><th class="n">Cost</th><th class="n">₹ / litre</th><th class="n">Km / litre</th><th class="n">Share</th></tr></thead><tbody>${rows.map(b=>`<tr${b.vid?` class="click" data-a="openV" data-id="${h(b.vid)}" data-go="fuel"`:''}><td><b>${h(b.vid?vById(b.vid).reg:b.reg)}</b>${b.vid?'':' '+tag('Not in fleet','t-over')}</td><td class="n">${b.n}</td><td class="n">${lit(b.l)}</td><td class="n"><b>${rs(b.a)}</b></td><td class="n">${b.l?'₹'+(b.a/b.l).toFixed(2):'—'}</td><td class="n">${b.eff.length?(b.eff.reduce((x,y)=>x+y,0)/b.eff.length).toFixed(2):'—'}</td><td class="n">${ta?(b.a/ta*100).toFixed(0)+'%':''}</td></tr>`).join('')}</tbody></table>
+   <p class="note">Km / litre appears when fills have odometer readings (enter them on manual fills, or add a reading under the vehicle).</p>
+   <div class="sec"><h3>All fills – ${monName(S.fm)}</h3>${fuelRows(L.sort((a,b)=>(a.date+a.time)<(b.date+b.time)?1:-1),true)}</div>`
+  :`<div class="empty">No fuel recorded for ${monName(S.fm)}. Upload the BPCL SmartFleet account statement (PDF) or add a fill.</div>`}`;
+}
+function fuelRows(L,showV){const eff={};for(const v of S.v)Object.assign(eff,kmpl(v.id));
+  return `<table class="stack"><thead><tr><th>Date</th>${showV?'<th>Vehicle</th>':''}<th class="n">Litres</th><th class="n">Amount</th><th class="n">₹ / L</th><th class="n">Odometer</th><th class="n">Km / L</th><th>Bunk</th><th></th></tr></thead><tbody>${L.map(f=>`<tr><td>${fd(f.date)}<br><span class="t-mute">${h(f.time||'')}</span></td>${showV?`<td><b>${h(fv(f)?vById(fv(f)).reg:f.reg)}</b>${f.card?`<br><span class="t-mute">${h(f.card)}</span>`:''}</td>`:''}<td class="n">${lit(f.litres)}<br><span class="t-mute">${h(f.product||'')}</span></td><td class="n"><b>${rs(num(f.amount))}</b></td><td class="n">${num(f.litres)?(num(f.amount)/num(f.litres)).toFixed(2):'—'}</td><td class="n">${num(f.odo)?kmf(num(f.odo)):'<span class="t-mute">—</span>'}</td><td class="n">${eff[f.id]?eff[f.id].toFixed(2):'—'}</td><td>${h(f.station||'')}<br><span class="t-mute">${h(f.src||'')}</span></td><td><button class="sm" data-a="editF" data-id="${h(f.id)}">Edit</button></td></tr>`).join('')}</tbody></table>`}
+function fForm(f){f=f?{...f,vid:fv(f)}:{date:today(),product:'Diesel',src:'Manual'};
+  return `<form data-f="fuel" data-id="${h(f.id||'')}"><div class="shead"><h2 style="margin:0">${f.id?'Edit fill':'Add fuel fill'}</h2><button type="button" class="sm" data-a="close">Cancel</button></div>
+  <div class="grid"><label>Vehicle *<select name="vid" required><option value="">Choose…</option>${S.v.map(x=>`<option value="${h(x.id)}"${x.id===f.vid?' selected':''}>${h(x.reg)}</option>`).join('')}</select></label><label>Date<input name="date" type="date" value="${h(f.date)}" required></label><label>Time<input name="time" type="time" value="${h(f.time||'')}"></label><label>Fuel<select name="product">${['Diesel','Petrol','Speed / Power','CNG','Other'].map(t=>`<option${t===f.product?' selected':''}>${t}</option>`).join('')}</select></label><label>Litres *<input name="litres" type="number" step="any" inputmode="decimal" value="${h(f.litres??'')}" required></label><label>Amount (₹) *<input name="amount" type="number" step="any" inputmode="decimal" value="${h(f.amount??'')}" required></label><label>Odometer (km)<input name="odo" type="number" step="any" inputmode="decimal" value="${h(f.odo??'')}" placeholder="for km / litre"></label><label>Bunk<input name="station" value="${h(f.station||'')}"></label></div>
+  <p class="note">${f.src==='SmartFleet'?'From the SmartFleet statement. You can add the odometer reading for km / litre.':'For fills outside SmartFleet (cash or other cards).'}</p>
+  <div class="row" style="justify-content:space-between"><button class="pri">Save</button>${f.id?`<button type="button" class="del" data-a="delF" data-id="${h(f.id)}">Delete fill</button>`:''}</div></form>`}
+let SF=null;
+async function readSmartFleet(file){
+  const pdfjs=await import('./vendor/pdf.min.mjs');pdfjs.GlobalWorkerOptions.workerSrc=new URL('./vendor/pdf.worker.min.mjs',location.href).href;
+  const doc=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer()),verbosity:0}).promise,pages=[];
+  for(let p=1;p<=doc.numPages;p++)pages.push((await (await doc.getPage(p)).getTextContent()).items);
+  return sfParse(pages);
+}
+const sfId=f=>'sf_'+f.card+'_'+f.date+'_'+String(f.time).replace(':','');
+function sfPreview(){const r=SF,have=new Set(S.f.map(f=>f.id));
+  const by={};for(const f of r.fills){const k=f.reg||f.card;const b=by[k]||(by[k]={reg:f.reg,cards:new Set(),n:0,nw:0,l:0,a:0});b.cards.add(f.card);b.n++;if(!have.has(sfId(f)))b.nw++;b.l+=f.litres;b.a+=f.amount}
+  const nw=r.fills.filter(f=>!have.has(sfId(f))).length,tot=r.fills.reduce((a,f)=>a+f.amount,0);
+  return `<div class="shead"><div><h2 style="margin:0">SmartFleet statement</h2><div class="t-mute">${h(r.period)} · ${h(r.account)}</div></div><button class="sm" data-a="close">Cancel</button></div>
+  <dl class="facts card"><div><dt>Fills found</dt><dd>${r.fills.length}</dd></div><div><dt>New (not imported yet)</dt><dd>${nw}</dd></div><div><dt>Litres</dt><dd>${lit(r.fills.reduce((a,f)=>a+f.litres,0))}</dd></div><div><dt>Total</dt><dd>${rs(tot)}</dd></div><div><dt>Recharges</dt><dd>${r.recharges.length} · ${rs(r.recharges.reduce((a,x)=>a+x.amount,0))}</dd></div></dl>
+  <table class="stack" style="margin-top:12px"><thead><tr><th>Vehicle</th><th>Fuel card</th><th class="n">Fills</th><th class="n">Litres</th><th class="n">Amount</th><th>In fleet</th></tr></thead><tbody>${Object.values(by).map(b=>{const v=vByReg(b.reg)||[...b.cards].map(vByCard).find(Boolean);return `<tr><td><b>${h(b.reg||'—')}</b></td><td>${[...b.cards].map(h).join('<br>')}</td><td class="n">${b.n}${b.nw<b.n?` <span class="t-mute">(${b.nw} new)</span>`:''}</td><td class="n">${lit(b.l)}</td><td class="n">${rs(b.a)}</td><td>${v?tag('✓ '+v.reg,'t-ok'):`<button class="sm" data-a="sfAddV" data-r="${h(b.reg)}">+ Add to fleet</button>`}</td></tr>`}).join('')}</tbody></table>
+  <p class="note">Fills already imported are skipped, so uploading the same month again is safe.</p>
+  <div class="row" style="margin-top:12px"><button class="pri" data-a="sfImport"${nw?'':' disabled'}>Import ${nw} new fill${nw===1?'':'s'}</button></div>`}
+async function sfImport(btn){const r=SF;btn.disabled=true;btn.textContent='Importing…';let n=0;
+  for(const v of S.v){const cards=new Set(v.cards||[]);let add=false;for(const [c,reg] of Object.entries(r.cards))if(normReg(reg)===normReg(v.reg)&&!cards.has(c)){cards.add(c);add=true}if(add)await put('vehicles',{...v,cards:[...cards]})}
+  const have=new Set(S.f.map(f=>f.id));
+  for(const f of r.fills){const id=sfId(f);if(have.has(id))continue;const v=vByReg(f.reg)||vByCard(f.card);await put('fuel',{...f,id,vid:v?v.id:'',stmt:r.period});n++}
+  closeM();S.fm=r.fills.length?mon(r.fills[0].date):S.fm;toast(n+' fills imported');render()}
+
 /* ---------- vehicle file ---------- */
 function detail(v){
   const l=loan(v),va=value(v),da=docAlerts(v),sv=S.s.filter(s=>s.vid===v.id).sort((a,b)=>a.date<b.date?1:-1);
@@ -244,6 +302,7 @@ function detail(v){
     ${(v.payments||[]).length?`<details style="margin-top:10px"><summary>Payments recorded (${v.payments.length})</summary><table class="stack"><thead><tr><th>Date</th><th class="n">Amount</th><th>Note</th><th></th></tr></thead><tbody>${[...v.payments].sort((a,b)=>a.date<b.date?1:-1).map(p=>`<tr><td>${fd(p.date)}</td><td class="n">${rs(num(p.amount))}</td><td>${h(p.note||'')}</td><td><button class="sm del" data-a="delPay" data-id="${h(v.id)}" data-k="${h(p.k)}">Delete</button></td></tr>`).join('')}</tbody></table></details>`:''}
     <details style="margin-top:10px" open><summary>Repayment schedule</summary><div class="scroll"><table><thead><tr><th class="n">#</th><th>Due</th><th class="n">Opening</th><th class="n">Interest</th><th class="n">Principal</th><th class="n">EMI</th><th>Status</th></tr></thead><tbody>${l.rows.map(x=>`<tr><td class="n">${x.no}</td><td>${fd(x.due)}</td><td class="n">${rs(x.open)}</td><td class="n">${rs(x.int)}</td><td class="n">${rs(x.pr)}</td><td class="n">${rs(x.amt)}</td><td>${tag(...stTag[x.st])}</td></tr>`).join('')}</tbody></table></div></details>`
   :`<div class="empty">No loan on this vehicle. <button class="sm" data-a="editV" data-id="${h(v.id)}">Add loan details</button></div>`}</div>
+  <div class="sec" id="sec-fuel"><h3>Fuel</h3>${(()=>{const F=S.f.filter(f=>fv(f)===v.id).sort((a,b)=>(a.date+a.time)<(b.date+b.time)?1:-1),m=today().slice(0,7),pm=addM(m+'-01',-1).slice(0,7),sm=k=>F.filter(f=>mon(f.date)===k),tot=a=>a.reduce((x,f)=>x+num(f.amount),0),tl=a=>a.reduce((x,f)=>x+num(f.litres),0),e=Object.values(kmpl(v.id));return F.length?`<div class="grid">${[[m,'This month'],[pm,'Last month']].map(([k,l])=>`<div class="card"><span class="t-mute">${l} · ${monName(k)}</span><div class="big">${rs(tot(sm(k)))}</div><span class="t-mute">${lit(tl(sm(k)))} · ${sm(k).length} fills</span></div>`).join('')}<div class="card"><span class="t-mute">Average km / litre</span><div class="big">${e.length?(e.reduce((a,b)=>a+b,0)/e.length).toFixed(2):'—'}</div><span class="t-mute">${e.length?'from '+e.length+' fills with odometer':'add odometer readings on fills'}</span></div></div><div style="margin-top:10px">${fuelRows(F.slice(0,8),false)}</div>`:'<div class="empty">No fuel recorded yet.</div>'})()}</div>
   <div class="sec"><h3>Parts life</h3>${lifeRows(sortLife(current().filter(x=>x.vid===v.id)),false)}</div>
   <div class="sec"><h3>Replaced parts — km driven</h3>${replTable(fitments().filter(x=>x.replaced&&x.vid===v.id).reverse(),false)}</div>
   <div class="sec"><h3>Service &amp; repair history</h3><div class="row" style="margin-bottom:10px"><button class="pri" data-a="addS" data-v="${h(v.id)}">+ Add service</button><button data-a="addS" data-v="${h(v.id)}" data-t="Tyre change">+ Tyre / part purchase</button><span class="t-mute">Total spent ${rs(sv.reduce((a,s)=>a+sTotal(s),0))}</span></div>${sv.length?`<table class="stack"><thead><tr><th>Date</th><th class="n">Odometer</th><th>Work</th><th>Parts</th><th class="n">Total</th><th>Bills</th></tr></thead><tbody>${sv.map(s=>`<tr class="click" data-a="editS" data-id="${h(s.id)}"><td>${fd(s.date)}</td><td class="n">${kmf(num(s.odo))}</td><td>${h(s.type)}<br><span class="t-mute">${h(s.garage||'')}</span></td><td>${(s.parts||[]).map(p=>`${h(p.name)}${p.pos?' · '+h(p.pos):''} <span class="t-mute">${h(p.brand||'')} ${rs(num(p.rate))}</span>`).join('<br>')||'—'}</td><td class="n">${rs(sTotal(s))}</td><td><div class="bills">${billLinks(s.bills)||'<span class="t-mute">—</span>'}</div></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No services logged.</div>'}</div>
@@ -301,7 +360,7 @@ function render(){
   if(window.__vhLocked)return;
   kpis();document.querySelectorAll('#tabs a').forEach(a=>a.classList.toggle('on',a.dataset.t===S.tab));
   const fo=document.activeElement&&document.activeElement.id==='q';
-  $('view').innerHTML=({fleet,loans,service,parts,rates}[S.tab]||fleet)();
+  $('view').innerHTML=({fleet,loans,service,parts,rates,fuel}[S.tab]||fleet)();
   if(fo){const q=$('q');q.focus();q.setSelectionRange(q.value.length,q.value.length)}
   if(S.modal&&S.modal.k==='v'){const v=vById(S.modal.id);if(v){const sc=$('ov').scrollTop;$('sheet').innerHTML=detail(v);$('ov').scrollTop=sc}else closeM()}
   lists();
@@ -309,11 +368,11 @@ function render(){
 function openM(html,k,id){S.modal={k,id};$('sheet').innerHTML=html;$('ov').classList.add('show');$('ov').scrollTop=0;document.body.style.overflow='hidden'}
 function closeM(){S.modal=null;$('ov').classList.remove('show');document.body.style.overflow=''}
 const openV=(id,go)=>{const v=vById(id);if(!v)return;openM(detail(v),'v',id);if(go){const e=$('sec-'+go);if(e)e.scrollIntoView()}};
-function setTab(){const t=location.hash.slice(1);S.tab=['fleet','loans','service','parts','rates'].includes(t)?t:'fleet';render()}
+function setTab(){const t=location.hash.slice(1);S.tab=['fleet','loans','service','parts','rates','fuel'].includes(t)?t:'fleet';render()}
 
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id;
-  if(['delV','delS','delPay','delVal'].includes(a)&&!b.dataset.armed){b.dataset.armed=1;const t=b.textContent;b.textContent='Tap again to delete';setTimeout(()=>{if(b.isConnected){b.textContent=t;delete b.dataset.armed}},3000);return}
+  if(['delV','delS','delPay','delVal','delF'].includes(a)&&!b.dataset.armed){b.dataset.armed=1;const t=b.textContent;b.textContent='Tap again to delete';setTimeout(()=>{if(b.isConnected){b.textContent=t;delete b.dataset.armed}},3000);return}
   if(a==='addV')openM(vForm(),'f');
   else if(a==='editV')openM(vForm(vById(id)),'f');
   else if(a==='openV')id?openV(id,b.dataset.go):closeM();
@@ -327,7 +386,12 @@ document.addEventListener('click',e=>{
   else if(a==='rmBill'){BILLS.splice(+b.dataset.i,1);$('billBox').innerHTML=billsBox()}
   else if(a==='viewBill'){$('lbImg').src=b.dataset.u;$('lbOpen').href=b.dataset.u;$('lb').classList.add('show')}
   else if(a==='lbClose')$('lb').classList.remove('show');
+  else if(a==='addF'){if(!S.v.length){toast('Add a vehicle first');return}openM(fForm(),'f')}
+  else if(a==='editF')openM(fForm(S.f.find(f=>f.id===id)),'f');
+  else if(a==='sfImport')sfImport(b);
+  else if(a==='sfAddV'){const reg=b.dataset.r;const v={id:uid(),reg,type:'Lorry',fuel:'Diesel',odo:0,dep:15,cards:Object.entries(SF.cards).filter(([c,r])=>normReg(r)===normReg(reg)).map(([c])=>c),payments:[],valuations:[]};put('vehicles',v);setTimeout(()=>{$('sheet').innerHTML=sfPreview()},400);toast(reg+' added – fill in its details later')}
   else if(a==='delV'){del('vehicles',id);closeM();toast('Vehicle deleted')}
+  else if(a==='delF'){del('fuel',id);closeM();toast('Fill deleted')}
   else if(a==='delS'){const s=S.s.find(x=>x.id===id);del('services',id);s&&vById(s.vid)?openV(s.vid):closeM();toast('Entry deleted')}
   else if(a==='delPay'||a==='delVal'){const v=vById(id),f=a==='delPay'?'payments':'valuations';put('vehicles',{...v,[f]:(v[f]||[]).filter(x=>x.k!==b.dataset.k)})}
   if(['addV','editV','addS','editS'].includes(a))setTimeout(()=>{updTotal();updEmi();updRepl()},0);
@@ -340,7 +404,9 @@ document.addEventListener('input',e=>{
   if(e.target.closest('form[data-f=svc]')){updTotal();updRepl()}
   if(e.target.closest('form[data-f=veh]'))updEmi();
 });
-document.addEventListener('change',e=>{if(e.target.id==='fv'){S.fv=e.target.value;render()}if(e.target.id==='billFile'&&AS){uploadBills([...e.target.files]);e.target.value=''}if(e.target.closest('form[data-f=svc]'))updRepl()});
+document.addEventListener('change',e=>{if(e.target.id==='fv'){S.fv=e.target.value;render()}if(e.target.id==='fm'){S.fm=e.target.value;render()}
+  if(e.target.id==='sfFile'&&e.target.files[0]){const file=e.target.files[0];e.target.value='';toast('Reading statement…');
+    readSmartFleet(file).then(r=>{if(!r.fills.length){toast('No fuel fills found – is this a BPCL SmartFleet account statement?');return}SF=r;openM(sfPreview(),'f')}).catch(er=>{console.error(er);toast('Could not read this PDF')})}if(e.target.id==='billFile'&&AS){uploadBills([...e.target.files]);e.target.value=''}if(e.target.closest('form[data-f=svc]'))updRepl()});
 document.addEventListener('submit',e=>{
   e.preventDefault();const f=e.target,d=Object.fromEntries(new FormData(f)),id=f.dataset.id;
   if(f.dataset.f==='veh'){
@@ -354,6 +420,9 @@ document.addEventListener('submit',e=>{
     put('services',s);const v=vById(s.vid);if(v&&s.odo>num(v.odo))put('vehicles',{...v,odo:s.odo});openV(s.vid);toast('Service saved');
   }else if(f.dataset.f==='pay'){const v=vById(id);if(!num(d.amount))return;put('vehicles',{...v,payments:[...(v.payments||[]),{k:uid(),date:d.date,amount:num(d.amount),note:d.note.trim()}]});toast('Payment recorded')}
   else if(f.dataset.f==='val'){const v=vById(id);if(!num(d.value))return;put('vehicles',{...v,valuations:[...(v.valuations||[]),{k:uid(),date:d.date,value:num(d.value),note:d.note.trim()}]});toast('Valuation added')}
+  else if(f.dataset.f==='fuel'){const old=S.f.find(x=>x.id===id)||{},v=vById(d.vid);
+    const o={...old,id:id||uid(),vid:d.vid,reg:v?v.reg:old.reg||'',date:d.date,time:d.time,product:d.product,litres:num(d.litres),amount:num(d.amount),odo:num(d.odo)||null,station:d.station.trim(),src:old.src||'Manual'};
+    put('fuel',o);if(v&&num(d.odo)>num(v.odo))put('vehicles',{...v,odo:num(d.odo)});closeM();S.fm=mon(o.date);toast('Fill saved')}
   else if(f.dataset.f==='odo'){const v=vById(id);put('vehicles',{...v,odo:num(d.odo)});toast('Odometer updated')}
 });
 window.addEventListener('hashchange',setTab);
@@ -390,7 +459,7 @@ async function vhConnect(){
   if(!r){lsLoad();$('sync').textContent='Saved on this device only';render();return}
   db=r;let got=0;const timer=setTimeout(()=>{if(got<3)$('sync').textContent='Cannot reach saved data yet — check connection'},10000);
   const sub=(col,key)=>db.collection(col).onSnapshot(sn=>{S[key]=sn.docs.map(d=>({...d.data(),id:d.id}));if(!sn.metadata.fromCache){got|=key==='v'?1:2;if(got===3){clearTimeout(timer);$('sync').textContent='Synced'}}render()},er=>{clearTimeout(timer);$('sync').textContent=er.code==='permission-denied'?'No permission — publish the new database rules':'Sync stopped ('+er.code+') — reopen the page'});
-  sub('vehicles','v');sub('services','s');
+  sub('vehicles','v');sub('services','s');db.collection('fuel').onSnapshot(sn=>{S.f=sn.docs.map(d=>({...d.data(),id:d.id}));render()},()=>{});
 })();
 }
 </script>
