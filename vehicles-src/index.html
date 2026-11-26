@@ -68,7 +68,7 @@ dl.facts dt{font-size:13px;color:var(--mute)}dl.facts dd{margin:0;font-weight:50
 .bills{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .thumb{padding:0;width:56px;height:56px;min-height:0;overflow:hidden;border-radius:6px}.thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .bill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--rule);border-radius:6px;padding:4px;background:var(--panel);font-size:13px;max-width:100%}.bill img{width:44px;height:44px;object-fit:cover;border-radius:4px}.bill>span:not(.pdf){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
-.pdf{display:grid;place-items:center;width:44px;height:44px;background:var(--brick);color:#fff;border-radius:4px;font-weight:700;font-size:12px}
+.pdf{text-decoration:none;display:grid;place-items:center;width:44px;height:44px;background:var(--brick);color:#fff;border-radius:4px;font-weight:700;font-size:12px}
 .lb{z-index:11;background:rgb(0 0 0/.85)}.lbin{max-width:1000px;margin:0 auto}.lbin img{width:100%;height:auto;border-radius:6px;background:#fff}
 #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:6px;display:none;z-index:10}
 .scroll{overflow-x:auto}
@@ -102,6 +102,7 @@ const TYPES=['Lorry','Egg van','Feed truck','Tractor','Pickup','Car','Two-wheele
 const STYPES=['Periodic service','Repair','Tyre change','Parts purchase','Battery','Accident','Electrical','Body work','Other'];
 const POS=['Front left','Front right','Rear left outer','Rear left inner','Rear right outer','Rear right inner','Stepney','Trolley left','Trolley right'];
 let AS=null,BILLS=[];
+const DOCS=[['rc','RC (registration)',''],['ins','Insurance','ins'],['fc','FC (fitness)','fc'],['permit','Permit','permit'],['tax','Road tax','tax'],['puc','Pollution (PUC)','puc']];
 const PARTS=['Engine oil','Oil filter','Air filter','Fuel filter','Diesel filter','Gear oil','Brake shoe','Brake pad','Clutch plate','Tyre','Battery','Coolant','Fan belt','Wheel bearing','Shock absorber'];
 const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=x=>{const n=parseFloat(x);return isFinite(n)?n:0};
@@ -151,7 +152,7 @@ function value(v){
   const wdv=P*(1-dep/100)**yrs,vals=[...(v.valuations||[])].sort((a,b)=>a.date<b.date?-1:1),latest=vals[vals.length-1];
   return{wdv,dep,yrs,latest,vals,cur:latest?num(latest.value):wdv};
 }
-function docAlerts(v){return[['Insurance',v.ins],['FC',v.fc],['Permit',v.permit],['Road tax',v.tax]].filter(d=>d[1]).map(([k,d])=>({k,d,left:days(today(),d)})).filter(x=>x.left<=30)}
+function docAlerts(v){return[['Insurance',v.ins],['FC',v.fc],['Permit',v.permit],['Road tax',v.tax],['PUC',v.puc]].filter(d=>d[1]).map(([k,d])=>({k,d,left:days(today(),d)})).filter(x=>x.left<=30)}
 function fitments(){
   const f=[];for(const s of S.s)for(const p of(s.parts||[]))f.push({sid:s.id,vid:s.vid,date:s.date,odo:num(s.odo),name:(p.name||'').trim(),pos:(p.pos||'').trim(),serial:(p.serial||'').trim(),brand:(p.brand||'').trim()||'—',qty:num(p.qty)||1,rate:num(p.rate),lifeKm:num(p.lifeKm),lifeM:num(p.lifeM)});
   f.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.odo-b.odo);
@@ -292,7 +293,12 @@ function detail(v){
   const l=loan(v),va=value(v),da=docAlerts(v),sv=S.s.filter(s=>s.vid===v.id).sort((a,b)=>a.date<b.date?1:-1);
   const field=(k,lab,type='text',val='')=>`<label>${lab}<input name="${k}" type="${type}" value="${h(val)}"${type==='number'?' step="any" inputmode="decimal"':''} required></label>`;
   return `<div class="shead"><div><h2 style="margin:0;font-size:30px">${h(v.reg)}</h2><div class="t-mute">${h([v.type,v.make,v.model,v.year,v.fuel].filter(Boolean).join(' · '))}${v.driver?' · Driver: '+h(v.driver):''}</div></div><div class="row"><button class="sm" data-a="editV" data-id="${h(v.id)}">Edit</button><button class="sm" data-a="close">Close</button></div></div>
-  <dl class="facts card"><div><dt>Odometer</dt><dd>${kmf(num(v.odo))}</dd></div><div><dt>Purchased</dt><dd>${fd(v.pdate)} · ${rs(num(v.price))}</dd></div>${[['Insurance',v.ins],['FC',v.fc],['Permit',v.permit],['Road tax',v.tax]].map(([k,d])=>`<div><dt>${k} till</dt><dd class="${d&&days(today(),d)<0?'t-over':d&&days(today(),d)<=30?'t-due':''}">${fd(d)}</dd></div>`).join('')}</dl>
+  <dl class="facts card"><div><dt>Odometer</dt><dd>${kmf(num(v.odo))}</dd></div><div><dt>Purchased</dt><dd>${fd(v.pdate)} · ${rs(num(v.price))}</dd></div>${[['Insurance',v.ins],['FC',v.fc],['Permit',v.permit],['Road tax',v.tax],['PUC',v.puc]].map(([k,d])=>`<div><dt>${k} till</dt><dd class="${d&&days(today(),d)<0?'t-over':d&&days(today(),d)<=30?'t-due':''}">${fd(d)}</dd></div>`).join('')}</dl>
+  <div class="sec" id="sec-docs"><h3>Documents</h3><div class="grid">${DOCS.map(([k,l,ex])=>{const F=((v.docs||{})[k])||[],d=ex?v[ex]:'',left=d?days(today(),d):null;
+    return `<div class="card"><div class="row" style="justify-content:space-between;align-items:start"><div><b>${l}</b>${ex?`<br><span class="${left!==null&&left<0?'t-over':left!==null&&left<=30?'t-due':'t-mute'}">${d?(left<0?'Expired ':'Valid till ')+fd(d):'No expiry date'}</span>`:''}${(v.docno||{})[k]?`<br><span class="t-mute">No. ${h(v.docno[k])}</span>`:''}</div>${F.length?tag(F.length+' file'+(F.length>1?'s':''),'t-ok'):tag('Not uploaded','t-mute')}</div>
+     <div class="bills" style="margin:8px 0">${F.map((x,i)=>`<span class="bill">${/^image\//.test(x.type)?`<button type="button" class="thumb" data-a="viewBill" data-u="${h(bu(x))}" aria-label="View ${h(x.name)}"><img src="${h(bu(x))}" alt=""></button>`:`<a class="pdf" href="${h(bu(x))}" target="_blank" rel="noopener">PDF</a>`}<span>${h(x.name)}</span><button type="button" class="sm del" data-a="delDoc" data-id="${h(v.id)}" data-k="${k}" data-i="${i}" aria-label="Remove">×</button></span>`).join('')}</div>
+     ${AS?`<label class="btn sm" style="display:inline-flex;align-items:center;min-height:36px;font-size:14px;cursor:pointer">⬆ Upload photo / PDF<input type="file" data-doc="${k}" data-vid="${h(v.id)}" accept="image/*,application/pdf" multiple style="position:absolute;opacity:0;width:1px;height:1px"></label>`:''}
+     <button class="sm" data-a="docNo" data-id="${h(v.id)}" data-k="${k}">${(v.docno||{})[k]?'Edit':'Add'} number</button></div>`}).join('')}</div></div>
   <form class="inline" data-f="odo" data-id="${h(v.id)}">${field('odo','Update odometer (km)','number',num(v.odo))}<button>Save reading</button></form>
   <div class="sec" id="sec-value"><h3>Current value</h3><div class="grid"><div class="card"><span class="t-mute">Value today</span><div class="big">${rs(va.cur)}</div><span class="t-mute">${va.latest?'From valuation on '+fd(va.latest.date):'Estimated by depreciation'}</span></div><div class="card"><span class="t-mute">Book value (${va.dep}% a year, written-down)</span><div class="big">${rs(va.wdv)}</div><span class="t-mute">${va.yrs.toFixed(1)} years since purchase</span></div><div class="card"><span class="t-mute">Your equity (value − loan principal)</span><div class="big ${l&&va.cur-l.principal<0?'t-over':''}">${rs(va.cur-(l?l.principal:0))}</div></div></div>
   ${va.vals.length?`<table class="stack" style="margin-top:10px"><thead><tr><th>Date</th><th class="n">Value</th><th>Source / note</th><th></th></tr></thead><tbody>${[...va.vals].reverse().map(x=>`<tr><td>${fd(x.date)}</td><td class="n">${rs(num(x.value))}</td><td>${h(x.note||'')}</td><td><button class="sm del" data-a="delVal" data-id="${h(v.id)}" data-k="${h(x.k)}">Delete</button></td></tr>`).join('')}</tbody></table>`:''}
@@ -315,7 +321,7 @@ function vForm(v){
   return `<form data-f="veh" data-id="${h(v.id||'')}"><div class="shead"><h2 style="margin:0">${v.id?'Edit '+h(v.reg):'Add vehicle'}</h2><button type="button" class="sm" data-a="${v.id?'openV':'close'}" data-id="${h(v.id||'')}">Cancel</button></div>
   <fieldset><legend>Vehicle</legend><div class="grid">${f('reg','Registration no. *','text',v.reg,'required placeholder="TN 67 AB 1234"')}<label>Type<select name="type">${TYPES.map(t=>`<option${t===v.type?' selected':''}>${t}</option>`).join('')}</select></label>${f('make','Make')}${f('model','Model')}${f('year','Year','number')}<label>Fuel<select name="fuel">${['Diesel','Petrol','CNG','Electric'].map(t=>`<option${t===v.fuel?' selected':''}>${t}</option>`).join('')}</select></label>${f('driver','Driver')}${f('odo','Odometer (km)','number')}</div></fieldset>
   <fieldset><legend>Purchase &amp; value</legend><div class="grid">${f('pdate','Purchase date','date')}${f('price','Purchase price (₹)','number')}${f('dep','Depreciation % a year','number',v.dep??15)}</div></fieldset>
-  <fieldset><legend>Papers — expiry dates</legend><div class="grid">${f('ins','Insurance','date')}${f('fc','FC (fitness)','date')}${f('permit','Permit','date')}${f('tax','Road tax','date')}</div></fieldset>
+  <fieldset><legend>Papers — expiry dates</legend><div class="grid">${f('ins','Insurance','date')}${f('fc','FC (fitness)','date')}${f('permit','Permit','date')}${f('tax','Road tax','date')}${f('puc','Pollution (PUC)','date')}</div><p class="note">Upload the RC, insurance, FC and other papers from the vehicle's page after saving.</p></fieldset>
   <fieldset><legend>Loan (leave blank if none)</legend><div class="grid">${f('l_lender','Bank / financier','text',L.lender)}${f('l_amount','Loan amount (₹)','number',L.amount)}${f('l_rate','Interest % a year','number',L.rate)}${f('l_tenure','Tenure (months)','number',L.tenure)}${f('l_start','First EMI date','date',L.start)}${f('l_emi','EMI (₹) — blank to calculate','number',L.emi||'')}</div><p class="note" id="emiCalc"></p></fieldset>
   <div class="row" style="justify-content:space-between"><button class="pri">Save vehicle</button>${v.id?`<button type="button" class="del" data-a="delV" data-id="${h(v.id)}">Delete vehicle</button>`:''}</div></form>`;
 }
@@ -372,7 +378,7 @@ function setTab(){const t=location.hash.slice(1);S.tab=['fleet','loans','service
 
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id;
-  if(['delV','delS','delPay','delVal','delF'].includes(a)&&!b.dataset.armed){b.dataset.armed=1;const t=b.textContent;b.textContent='Tap again to delete';setTimeout(()=>{if(b.isConnected){b.textContent=t;delete b.dataset.armed}},3000);return}
+  if(['delV','delS','delPay','delVal','delF','delDoc'].includes(a)&&!b.dataset.armed){b.dataset.armed=1;const t=b.textContent;b.textContent='Tap again to delete';setTimeout(()=>{if(b.isConnected){b.textContent=t;delete b.dataset.armed}},3000);return}
   if(a==='addV')openM(vForm(),'f');
   else if(a==='editV')openM(vForm(vById(id)),'f');
   else if(a==='openV')id?openV(id,b.dataset.go):closeM();
@@ -392,6 +398,8 @@ document.addEventListener('click',e=>{
   else if(a==='sfAddV'){const reg=b.dataset.r;const v={id:uid(),reg,type:'Lorry',fuel:'Diesel',odo:0,dep:15,cards:Object.entries(SF.cards).filter(([c,r])=>normReg(r)===normReg(reg)).map(([c])=>c),payments:[],valuations:[]};put('vehicles',v);setTimeout(()=>{$('sheet').innerHTML=sfPreview()},400);toast(reg+' added – fill in its details later')}
   else if(a==='delV'){del('vehicles',id);closeM();toast('Vehicle deleted')}
   else if(a==='delF'){del('fuel',id);closeM();toast('Fill deleted')}
+  else if(a==='delDoc'){const v=vById(id),k=b.dataset.k,docs={...(v.docs||{})};docs[k]=(docs[k]||[]).filter((x,i)=>i!==+b.dataset.i);put('vehicles',{...v,docs});toast('File removed')}
+  else if(a==='docNo'){const v=vById(id),k=b.dataset.k,cur=(v.docno||{})[k]||'',n=prompt('Number for '+(DOCS.find(x=>x[0]===k)||[,''])[1]+' (policy / certificate no.)',cur);if(n!==null)put('vehicles',{...v,docno:{...(v.docno||{}),[k]:n.trim()}})}
   else if(a==='delS'){const s=S.s.find(x=>x.id===id);del('services',id);s&&vById(s.vid)?openV(s.vid):closeM();toast('Entry deleted')}
   else if(a==='delPay'||a==='delVal'){const v=vById(id),f=a==='delPay'?'payments':'valuations';put('vehicles',{...v,[f]:(v[f]||[]).filter(x=>x.k!==b.dataset.k)})}
   if(['addV','editV','addS','editS'].includes(a))setTimeout(()=>{updTotal();updEmi();updRepl()},0);
@@ -406,11 +414,13 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{if(e.target.id==='fv'){S.fv=e.target.value;render()}if(e.target.id==='fm'){S.fm=e.target.value;render()}
   if(e.target.id==='sfFile'&&e.target.files[0]){const file=e.target.files[0];e.target.value='';toast('Reading statement…');
-    readSmartFleet(file).then(r=>{if(!r.fills.length){toast('No fuel fills found – is this a BPCL SmartFleet account statement?');return}SF=r;openM(sfPreview(),'f')}).catch(er=>{console.error(er);toast('Could not read this PDF')})}if(e.target.id==='billFile'&&AS){uploadBills([...e.target.files]);e.target.value=''}if(e.target.closest('form[data-f=svc]'))updRepl()});
+    readSmartFleet(file).then(r=>{if(!r.fills.length){toast('No fuel fills found – is this a BPCL SmartFleet account statement?');return}SF=r;openM(sfPreview(),'f')}).catch(er=>{console.error(er);toast('Could not read this PDF')})}if(e.target.id==='billFile'&&AS){uploadBills([...e.target.files]);e.target.value=''}
+  if(e.target.dataset&&e.target.dataset.doc&&AS){const inp=e.target,k=inp.dataset.doc,vid=inp.dataset.vid,files=[...inp.files];inp.value='';(async()=>{const add=[];for(const file of files){toast('Uploading '+file.name+'…');try{const r=await AS.upload(file,'docs');add.push({id:r.id,url:r.url,name:file.name,type:r.contentType,at:today()})}catch(er){toast(er.code==='too_large'?'File too large (max 10 MB)':er.code==='unsupported_type'?'Only photos or PDF':'Upload failed')}}
+    if(add.length){const v=vById(vid);put('vehicles',{...v,docs:{...(v.docs||{}),[k]:[...(((v.docs||{})[k])||[]),...add]}});toast(add.length+' file'+(add.length>1?'s':'')+' saved')}})()}if(e.target.closest('form[data-f=svc]'))updRepl()});
 document.addEventListener('submit',e=>{
   e.preventDefault();const f=e.target,d=Object.fromEntries(new FormData(f)),id=f.dataset.id;
   if(f.dataset.f==='veh'){
-    const old=vById(id)||{},v={...old,id:id||uid(),reg:d.reg.trim().toUpperCase(),type:d.type,make:d.make.trim(),model:d.model.trim(),year:d.year,fuel:d.fuel,driver:d.driver.trim(),odo:num(d.odo),pdate:d.pdate,price:num(d.price),dep:d.dep,ins:d.ins,fc:d.fc,permit:d.permit,tax:d.tax,
+    const old=vById(id)||{},v={...old,id:id||uid(),reg:d.reg.trim().toUpperCase(),type:d.type,make:d.make.trim(),model:d.model.trim(),year:d.year,fuel:d.fuel,driver:d.driver.trim(),odo:num(d.odo),pdate:d.pdate,price:num(d.price),dep:d.dep,ins:d.ins,fc:d.fc,permit:d.permit,tax:d.tax,puc:d.puc,
       loan:num(d.l_amount)?{lender:d.l_lender.trim(),amount:num(d.l_amount),rate:num(d.l_rate),tenure:num(d.l_tenure),start:d.l_start||today(),emi:num(d.l_emi)}:null,payments:old.payments||[],valuations:old.valuations||[]};
     if(num(d.l_amount)&&!num(d.l_tenure)){toast('Enter loan tenure in months');return}
     delete v.sample;put('vehicles',v);S.modal={k:'v',id:v.id};openV(v.id);toast('Vehicle saved');
@@ -445,11 +455,11 @@ async function vhConnect(){
   const ok=!!sess&&(sess==='owner'||!!(me&&(me.role==='admin'||me.veh)));
   if(!ok){lockOut(sess?'Your login does not have Vehicles access. Ask Management to turn on <b>Vehicles access</b> for you in Settings → Users.':'Please log in to the NSR app first, then open Vehicles.');return false}
   const st=firebase.storage();
-  AS={async upload(file){
+  AS={async upload(file,folder){
     const type=file.type||(/\.pdf$/i.test(file.name)?'application/pdf':'image/jpeg');
     if(!/^image\/|^application\/pdf$/.test(type))throw{code:'unsupported_type'};
     if(file.size>10*1024*1024)throw{code:'too_large'};
-    const id=uid()+'-'+file.name.replace(/[^\w.-]+/g,'_').slice(-40),ref=st.ref('vehicles/bills/'+id);
+    const id=uid()+'-'+file.name.replace(/[^\w.-]+/g,'_').slice(-40),ref=st.ref('vehicles/'+(folder||'bills')+'/'+id);
     await ref.put(file,{contentType:type});return{id,url:await ref.getDownloadURL(),contentType:type}}};
   return{collection:c=>f.collection('veh_'+c)};
 }

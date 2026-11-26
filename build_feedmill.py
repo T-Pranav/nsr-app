@@ -116,7 +116,7 @@ rep("function buy(){const L=Object.keys(S.led).filter(k=>String(S.led[k].date).s
 
 # PDF / Excel / CSV of the page's report tables, same format as the farm app
 rep("function regv(){",open('patches/xport.js').read()+"\nfunction regv(){")
-rep("<div class=\"acts\"><span class=\"pill\">${pill}</span>","<div class=\"acts\">${['stock','buy','sale','rep','reg','mon','prod','dash'].includes(tab)?`<span class=\"fmx\"><small>Download</small><button data-a=\"fmx\" data-k=\"pdf\">PDF</button><button data-a=\"fmx\" data-k=\"xls\">Excel</button><button data-a=\"fmx\" data-k=\"csv\">CSV</button></span>`:''}<span class=\"pill\">${pill}</span>")
+rep("<div class=\"acts\"><span class=\"pill\">${pill}</span>","<div class=\"acts\">${['stock','buy','sale','rep','reg','mon','prod','dash','silo'].includes(tab)?`<span class=\"fmx\"><small>Download</small><button data-a=\"fmx\" data-k=\"pdf\">PDF</button><button data-a=\"fmx\" data-k=\"xls\">Excel</button><button data-a=\"fmx\" data-k=\"csv\">CSV</button></span>`:''}<span class=\"pill\">${pill}</span>")
 rep("@media(min-width:861px){.fmmob{display:none!important}}","@media(min-width:861px){.fmmob{display:none!important}}.fmx{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}.fmx small{color:var(--mu);font-weight:600}.fmx button{padding:6px 12px}@media print{.fmx{display:none!important}}")
 
 # publish daily raw-material kg (no prices) for the HR feed mill contract
@@ -131,6 +131,17 @@ rep("const IC={sale:","const IC={silo:'<path d=\"M7 3h10v12l-3 4h-4l-3-4z\"/><pa
 rep("const v={dash:()=>monBanner()+dash(),mon:monv,sale:salev,","const v={dash:()=>monBanner()+dash(),mon:monv,silo:silov,sale:salev,")
 rep(" rv(d){RV=d.v;render()},"," rv(d){RV=d.v;render()},\n silsel(d){SIL.sel=d.v||null;SIL.date='';render();scrollTo(0,0)},")
 rep("document.addEventListener('change',e=>{const t=e.target,d=t.dataset;","document.addEventListener('change',e=>{const t=e.target,d=t.dataset;if(t.id=='sild'){SIL.date=t.value;render();return}")
+
+# Stock count: physical vs system with adjustment entries
+rep("function regv(){",open('patches/scount.js').read()+"\nfunction regv(){")
+rep("r[k]={m:num(i.m),g:num(i.g),p:0,c:0,tr:0,sl:0}","r[k]={m:num(i.m),g:num(i.g),p:0,c:0,tr:0,sl:0,adj:0}")
+rep("else if(e.type=='S'){x[e.src=='M'?'m':'g']-=num(e.qty);x.sl+=num(e.qty)}","else if(e.type=='S'){x[e.src=='M'?'m':'g']-=num(e.qty);x.sl+=num(e.qty)}else if(e.type=='A'){x[e.dest=='G'?'g':'m']+=num(e.qty);x.adj+=num(e.qty)}")
+rep("function stock(){const C=calc(),","function stock(){if(SCN)return scView();const C=calc(),")
+rep("<button data-a=\"csvstock\">Export CSV</button></div>\n <div class=\"sc\"><table><tr><th>Item</th><th>Rate ₹</th><th>Opening mill</th><th>Opening godown</th><th>Purchased</th><th>Transfers<br><small>to mill +, to godown −</small></th><th>Consumed</th><th>Sold</th>",
+    "<button data-a=\"csvstock\">Export CSV</button><button class=\"pri\" data-a=\"scopen\">📋 Stock count / adjust</button></div>\n <div class=\"sc\"><table><tr><th>Item</th><th>Rate ₹</th><th>Opening mill</th><th>Opening godown</th><th>Purchased</th><th>Transfers<br><small>to mill +, to godown −</small></th><th>Consumed</th><th>Sold</th><th>Count adjustment</th>")
+rep("<td>${x.sl?f2(x.sl):'–'}</td><td><b>${f2(x.m)}</b></td>","<td>${x.sl?f2(x.sl):'–'}</td><td>${x.adj?(x.adj>0?'+':'')+f2(x.adj):'–'}</td><td><b>${f2(x.m)}</b></td>")
+rep("}).join('')||'<tr><td colspan=13>No items</td></tr>'}</table></div>\n <h2>Add item</h2>","}).join('')||'<tr><td colspan=14>No items</td></tr>'}</table></div>\n ${scHist()}\n <h2>Add item</h2>")
+rep("function buy(){const L=Object.keys(S.led).filter(k=>S.led[k].type!=='S'&&","function buy(){const L=Object.keys(S.led).filter(k=>S.led[k].type!=='S'&&S.led[k].type!=='A'&&")
 os.makedirs('app/feedmill',exist_ok=True)
 try:
   _UPD=UPD.replace('__SWPATH__','../sw.js');_V2=re.search(r"nsr-v\d+",open('static/sw.js').read()).group(0)
