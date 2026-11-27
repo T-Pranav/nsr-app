@@ -87,8 +87,8 @@ rep("'<tr><td colspan=11>No items</td></tr>'","'<tr><td colspan=12>No items</td>
 # one look with the farm app: same cream/brown/gold palette, Playfair headings, Manrope text
 rep("@media(min-width:861px){.fmmob{display:none!important}}</style>","@media(min-width:861px){.fmmob{display:none!important}}"
  ":root{--bg:#eef1f5;--sf:#ffffff;--sf2:#f5f7fa;--ink:#16202c;--mu:#5b6878;--bd:#dfe4eb;--bd2:#c9d2dd;--br:#1d3a5c;--br2:#3d6593;--brbg:#eaf0f7;--brt:#1d3a5c;--brn:#1d3a5c;--gold:#3d6593;--sh2:0 1px 2px rgba(16,36,59,.06)}"
- "@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0d151f;--sf:#152131;--sf2:#1a283a;--ink:#e6edf5;--mu:#9aa9ba;--bd:#26374b;--bd2:#33465c;--br:#8db8e8;--br2:#6d9bd0;--brbg:#1a2a3e;--brt:#8db8e8;--brn:#8db8e8}}"
- ":root[data-theme=dark]{--bg:#0d151f;--sf:#152131;--sf2:#1a283a;--ink:#e6edf5;--mu:#9aa9ba;--bd:#26374b;--bd2:#33465c;--br:#8db8e8;--br2:#6d9bd0;--brbg:#1a2a3e;--brt:#8db8e8;--brn:#8db8e8}"
+ "@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#121314;--sf:#1c1d20;--sf2:#232428;--ink:#ececed;--mu:#a4a6ab;--bd:#2f3136;--bd2:#3a3c42;--br:#e4e4e6;--br2:#bdbdc2;--brbg:#2a2b2f;--brt:#e4e4e6;--brn:#e4e4e6}}"
+ ":root[data-theme=dark]{--bg:#121314;--sf:#1c1d20;--sf2:#232428;--ink:#ececed;--mu:#a4a6ab;--bd:#2f3136;--bd2:#3a3c42;--br:#e4e4e6;--br2:#bdbdc2;--brbg:#2a2b2f;--brt:#e4e4e6;--brn:#e4e4e6}"
  "body{font-family:'Manrope','Noto Sans Tamil',system-ui,sans-serif}.ph h1,.panel h3,.card h3{font-family:'Playfair Display',Georgia,serif;font-weight:700;letter-spacing:0}"
  "@media(prefers-color-scheme:dark){:root:not([data-theme=light]) button.on,:root:not([data-theme=light]) button.pri{color:#1b120b}}:root[data-theme=dark] button.on,:root[data-theme=dark] button.pri{color:#1b120b}"
  "</style>")
