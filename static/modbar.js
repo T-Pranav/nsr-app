@@ -45,7 +45,7 @@
   if(here==='fm')css+='@media(prefers-color-scheme:light){:root:not([data-theme=dark]){'+FMV+'}}:root[data-theme=light]{'+FMV+'}'+
     'h1,h2,h3,.ph h1{font-family:Manrope,Inter,"Segoe UI",system-ui,sans-serif!important;letter-spacing:-.2px}';
   if(here==='vh')css+=':root{--bar:light-dark('+C[0]+','+(CL?'#0f0a07':'#0b0b0c')+');'+(CL?'--bg:light-dark(#f6efe4,#15100c);--panel:light-dark(#fffdf9,#1f1813);--rule:light-dark(#e6d8c4,#3a2f26);--ink:light-dark(#2b1d12,#f1ebe4);--mute:light-dark(#7a6450,#b3a597);':'--bg:light-dark(#eef1f5,#121314);--panel:light-dark(#fff,#1c1d20);--rule:light-dark(#dfe4eb,#2f3136);--ink:light-dark(#16202c,#ececed);--mute:light-dark(#5b6878,#a4a6ab);')+'--brick:light-dark(#c8283a,#ef6a72)}'+
-    'header.band{padding-top:22px!important;padding-bottom:22px!important}header .back{display:none}header h1{font-size:clamp(22px,3vw,30px)!important}';
+    ':root{--pri:light-dark('+C[1]+','+C[4]+');--pri-ink:light-dark(#fff,'+(CL?'#1b120b':'#121314')+');--pri-soft:light-dark('+C[3]+','+(CL?'#2e2318':'#2a2b2f')+');--th:light-dark('+(CL?'#f4ebdd':'#f5f7fa')+','+(CL?'#271e17':'#232428')+')}';
   function go(){if(document.getElementById('nsrMods'))return;
     var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
     var d=document.createElement('div');d.id='nsrMods';
