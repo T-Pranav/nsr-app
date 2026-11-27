@@ -156,7 +156,7 @@ const TYPES=['Lorry','Egg van','Feed truck','Tractor','Pickup','Car','Two-wheele
 const STYPES=['Periodic service','Repair','Tyre change','Parts purchase','Battery','Accident','Electrical','Body work','Other'];
 const POS=['Front left','Front right','Rear left outer','Rear left inner','Rear right outer','Rear right inner','Stepney','Trolley left','Trolley right'];
 let AS=null,BILLS=[];
-const DOCS=[['rc','RC (registration)',''],['ins','Insurance','ins'],['fc','FC (fitness)','fc'],['permit','Permit','permit'],['tax','Road tax','tax'],['puc','Pollution (PUC)','puc']];
+const DOCS=[['rc','RC (registration)','rcv'],['ins','Insurance','ins'],['fc','FC (fitness)','fc'],['permit','Permit','permit'],['tax','Road tax','tax'],['puc','Pollution (PUC)','puc']];
 const PARTS=['Engine oil','Oil filter','Air filter','Fuel filter','Diesel filter','Gear oil','Brake shoe','Brake pad','Clutch plate','Tyre','Battery','Coolant','Fan belt','Wheel bearing','Shock absorber'];
 const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=x=>{const n=parseFloat(x);return isFinite(n)?n:0};
@@ -206,7 +206,7 @@ function value(v){
   const wdv=P*(1-dep/100)**yrs,vals=[...(v.valuations||[])].sort((a,b)=>a.date<b.date?-1:1),latest=vals[vals.length-1];
   return{wdv,dep,yrs,latest,vals,cur:latest?num(latest.value):wdv};
 }
-function docAlerts(v){return[['Insurance',v.ins],['FC',v.fc],['Permit',v.permit],['Road tax',v.tax],['PUC',v.puc]].filter(d=>d[1]).map(([k,d])=>({k,d,left:days(today(),d)})).filter(x=>x.left<=30)}
+function docAlerts(v){return[['RC',v.rcv],['Insurance',v.ins],['FC',v.fc],['Permit',v.permit],['Road tax',v.tax],['PUC',v.puc]].filter(d=>d[1]).map(([k,d])=>({k,d,left:days(today(),d)})).filter(x=>x.left<=30)}
 function fitments(){
   const f=[];for(const s of S.s)for(const p of(s.parts||[]))f.push({sid:s.id,vid:s.vid,date:s.date,odo:num(s.odo),name:(p.name||'').trim(),pos:(p.pos||'').trim(),serial:(p.serial||'').trim(),brand:(p.brand||'').trim()||'—',qty:num(p.qty)||1,rate:num(p.rate),lifeKm:num(p.lifeKm),lifeM:num(p.lifeM)});
   f.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.odo-b.odo);
@@ -246,7 +246,7 @@ function kpis(){
 function fleet(){
   const q=S.q.toLowerCase(),list=S.v.filter(v=>!q||[v.reg,v.make,v.model,v.type,v.driver].join(' ').toLowerCase().includes(q)).sort((a,b)=>a.reg<b.reg?-1:1);
   const cur=current();
-  return `<div class="bar"><input id="q" placeholder="Search number, make, driver…" value="${h(S.q)}" style="max-width:340px"><button class="pri" data-a="addV">+ Add vehicle</button></div>`+
+  return `<div class="bar"><input id="q" placeholder="Search number, make, driver…" value="${h(S.q)}" style="max-width:340px"><div class="row">${AS?`<label class="btn" style="display:inline-flex;align-items:center;cursor:pointer">⬆ Import RC data<input type="file" id="impFile" accept=".json,application/json,application/pdf,image/*" multiple style="position:absolute;opacity:0;width:1px;height:1px"></label>`:''}<button class="pri" data-a="addV">+ Add vehicle</button></div></div>`+
   (list.length?`<table class="stack"><thead><tr><th>Vehicle</th><th class="n">Odometer</th><th class="n">Value today</th><th class="n">Loan balance</th><th>Next EMI</th><th>Alerts</th></tr></thead><tbody>${list.map(v=>{
     const l=loan(v),va=value(v),pa=cur.filter(x=>x.vid===v.id).map(lifeOf).filter(x=>x.st!=='ok'),da=docAlerts(v);
     return `<tr class="click" data-a="openV" data-id="${h(v.id)}"><td><b>${h(v.reg)}</b><br><span class="t-mute">${h([v.type,v.make,v.model,v.year].filter(Boolean).join(' · '))}</span></td><td class="n">${kmf(num(v.odo))}</td><td class="n">${rs(va.cur)}</td><td class="n">${l?rs(l.remaining):'—'}</td><td>${l?(l.next?`${fd(l.next.due)} · ${rs(l.next.amt)}${l.overdueN?' '+tag(l.overdueN+' overdue','t-over'):''}`:tag('Closed','t-ok')):'—'}</td><td>${pa.length?tag(pa.length+' part'+(pa.length>1?'s':'')+' due',pa.some(x=>x.st==='over')?'t-over':'t-due'):''}${da.map(d=>tag(d.k+(d.left<0?' expired':' in '+d.left+'d'),d.left<0?'t-over':'t-due')).join('')}${!pa.length&&!da.length?tag('All good','t-ok'):''}</td></tr>`}).join('')}</tbody></table>`
@@ -348,6 +348,7 @@ function detail(v){
   const field=(k,lab,type='text',val='')=>`<label>${lab}<input name="${k}" type="${type}" value="${h(val)}"${type==='number'?' step="any" inputmode="decimal"':''} required></label>`;
   return `<div class="shead"><div><h2 style="margin:0;font-size:30px">${h(v.reg)}</h2><div class="t-mute">${h([v.type,v.make,v.model,v.year,v.fuel].filter(Boolean).join(' · '))}${v.driver?' · Driver: '+h(v.driver):''}</div></div><div class="row"><button class="sm" data-a="editV" data-id="${h(v.id)}">Edit</button><button class="sm" data-a="close">Close</button></div></div>
   <dl class="facts card"><div><dt>Odometer</dt><dd>${kmf(num(v.odo))}</dd></div><div><dt>Purchased</dt><dd>${fd(v.pdate)} · ${rs(num(v.price))}</dd></div>${[['Insurance',v.ins],['FC',v.fc],['Permit',v.permit],['Road tax',v.tax],['PUC',v.puc]].map(([k,d])=>`<div><dt>${k} till</dt><dd class="${d&&days(today(),d)<0?'t-over':d&&days(today(),d)<=30?'t-due':''}">${fd(d)}</dd></div>`).join('')}</dl>
+  ${v.rcd?`<details class="card" style="margin-top:10px"><summary><b>RC details</b> <span class="t-mute">${h([v.rcd.cls,v.rcd.colour].filter(Boolean).join(' · '))}</span></summary><dl class="facts" style="margin-top:8px">${[['Registered on',fd(v.rcd.regDate)],['RC valid till',v.rcv?fd(v.rcv):(v.rcd.rcNote||'—')],['Owner',v.rcd.owner+(v.rcd.ownerSr?' (owner '+v.rcd.ownerSr+')':'')],['Chassis no.',v.rcd.chassis],['Engine / motor no.',v.rcd.engine],['Body',v.rcd.body],['Manufactured',v.rcd.mfg],['Financer (hypothecation)',v.rcd.financer||'None'],['Road tax (on RC)',v.rcd.tax||'—']].map(([k,x])=>`<div><dt>${k}</dt><dd>${h(x||'—')}</dd></div>`).join('')}</dl>${v.rcd.check?`<p class="note t-due">Check: ${h(v.rcd.check)}</p>`:''}</details>`:''}
   <div class="sec" id="sec-docs"><h3>Documents</h3><div class="grid">${DOCS.map(([k,l,ex])=>{const F=((v.docs||{})[k])||[],d=ex?v[ex]:'',left=d?days(today(),d):null;
     return `<div class="card"><div class="row" style="justify-content:space-between;align-items:start"><div><b>${l}</b>${ex?`<br><span class="${left!==null&&left<0?'t-over':left!==null&&left<=30?'t-due':'t-mute'}">${d?(left<0?'Expired ':'Valid till ')+fd(d):'No expiry date'}</span>`:''}${(v.docno||{})[k]?`<br><span class="t-mute">No. ${h(v.docno[k])}</span>`:''}</div>${F.length?tag(F.length+' file'+(F.length>1?'s':''),'t-ok'):tag('Not uploaded','t-mute')}</div>
      <div class="bills" style="margin:8px 0">${F.map((x,i)=>`<span class="bill">${/^image\//.test(x.type)?`<button type="button" class="thumb" data-a="viewBill" data-u="${h(bu(x))}" aria-label="View ${h(x.name)}"><img src="${h(bu(x))}" alt=""></button>`:`<a class="pdf" href="${h(bu(x))}" target="_blank" rel="noopener">PDF</a>`}<span>${h(x.name)}</span><button type="button" class="sm del" data-a="delDoc" data-id="${h(v.id)}" data-k="${k}" data-i="${i}" aria-label="Remove">×</button></span>`).join('')}</div>
@@ -368,6 +369,41 @@ function detail(v){
   <div class="sec"><h3>Service &amp; repair history</h3><div class="row" style="margin-bottom:10px"><button class="pri" data-a="addS" data-v="${h(v.id)}">+ Add service</button><button data-a="addS" data-v="${h(v.id)}" data-t="Tyre change">+ Tyre / part purchase</button><span class="t-mute">Total spent ${rs(sv.reduce((a,s)=>a+sTotal(s),0))}</span></div>${sv.length?`<table class="stack"><thead><tr><th>Date</th><th class="n">Odometer</th><th>Work</th><th>Parts</th><th class="n">Total</th><th>Bills</th></tr></thead><tbody>${sv.map(s=>`<tr class="click" data-a="editS" data-id="${h(s.id)}"><td>${fd(s.date)}</td><td class="n">${kmf(num(s.odo))}</td><td>${h(s.type)}<br><span class="t-mute">${h(s.garage||'')}</span></td><td>${(s.parts||[]).map(p=>`${h(p.name)}${p.pos?' · '+h(p.pos):''} <span class="t-mute">${h(p.brand||'')} ${rs(num(p.rate))}</span>`).join('<br>')||'—'}</td><td class="n">${rs(sTotal(s))}</td><td><div class="bills">${billLinks(s.bills)||'<span class="t-mute">—</span>'}</div></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No services logged.</div>'}</div>
   ${da.length?`<p class="note t-over">Papers needing attention: ${da.map(d=>h(d.k)+' '+(d.left<0?'expired '+fd(d.d):'expires '+fd(d.d))).join(' · ')}</p>`:''}`;
 }
+
+/* ---------- bulk import from RC copies ---------- */
+let IMP=null;
+const rcType=c=>/tractor/i.test(c)?'Tractor':/cycle|scooter/i.test(c)?'Two-wheeler':/earth|jcb|loader/i.test(c)?'JCB / Loader':/car|lmv/i.test(c)?'Car':/goods|lorry|carrier/i.test(c)?'Lorry':'Other';
+const fnKey=n=>String(n||'').toLowerCase();
+async function impRead(files){
+  const js=files.filter(f=>/\.json$/i.test(f.name)||f.type==='application/json'),docs=files.filter(f=>!js.includes(f));
+  if(!js.length){toast('Pick the vehicle data file (.json) together with the PDFs');return}
+  let rows=[];for(const f of js){try{const o=JSON.parse(await f.text());rows=rows.concat(Array.isArray(o)?o:o.vehicles||[])}catch(e){toast('Could not read '+f.name);return}}
+  rows=rows.filter(r=>r&&r.reg);const byName={};docs.forEach(f=>byName[fnKey(f.name)]=f);const used=new Set();
+  const plan=rows.map(r=>{const v=vByReg(r.reg),m={rc:[],ins:[]};
+    for(const k of ['rc','ins'])for(const n of ((r.files||{})[k]||[])){const f=byName[fnKey(n)];if(f){m[k].push(f);used.add(f)}}
+    if(!m.rc.length&&!m.ins.length)docs.filter(f=>!used.has(f)&&normReg(f.name.replace(/\.[a-z]+$/i,'').replace(/_?(insurance|ins)?_?\d?$/i,''))===normReg(r.reg)).forEach(f=>{(/insur/i.test(f.name)?m.ins:m.rc).push(f);used.add(f)});
+    return{r,v,m}});
+  IMP={plan,left:docs.filter(f=>!used.has(f))};openM(impView(),'f')}
+function impView(){const P=IMP.plan,nw=P.filter(x=>!x.v).length;
+  return `<div class="shead"><h2 style="margin:0">Import from RC copies</h2><button type="button" class="sm" data-a="close">Cancel</button></div>
+  <p class="t-mute">${P.length} vehicles in the file · ${nw} new · ${P.length-nw} already in the fleet (RC details added, nothing you typed is overwritten).</p>
+  <div class="scroll"><table class="stack"><thead><tr><th>Vehicle</th><th>Type</th><th>RC valid till</th><th>Insurance till</th><th>Files</th><th></th></tr></thead><tbody>${P.map(({r,v,m})=>{const left=r.rcValid?days(today(),r.rcValid):null;return `<tr><td><b>${h(r.reg)}</b><br><span class="t-mute">${h([r.maker,r.model].filter(Boolean).join(' · '))}</span></td><td>${h(rcType(r.cls))}</td><td class="${left!==null&&left<0?'t-over':''}">${r.rcValid?fd(r.rcValid):h(r.rcNote||'—')}</td><td>${r.ins&&r.ins.till?fd(r.ins.till):'—'}</td><td>${m.rc.length?tag('RC '+m.rc.length,'t-ok'):tag('No RC file','t-mute')}${m.ins.length?tag('Insurance '+m.ins.length,'t-ok'):''}</td><td>${v?tag('Update','t-due'):tag('New','t-ok')}</td></tr>`}).join('')}</tbody></table></div>
+  ${IMP.left.length?`<p class="note">Not matched to any vehicle: ${IMP.left.map(f=>h(f.name)).join(', ')}</p>`:''}
+  <div class="row" style="margin-top:12px"><button class="pri" data-a="impGo" id="impBtn">Import ${P.length} vehicles</button><span id="impMsg" class="t-mute"></span></div>`}
+async function impGo(){const P=IMP.plan,btn=$('impBtn'),msg=$('impMsg');btn.disabled=true;let n=0,nf=0;
+  for(const {r,v:old0,m} of P){n++;msg.textContent='Saving '+n+' of '+P.length+' · '+r.reg+'…';
+    const old=vByReg(r.reg)||old0||{},docs={...(old.docs||{})};
+    for(const k of ['rc','ins']){const have=new Set((docs[k]||[]).map(x=>x.name));const add=[];
+      for(const f of m[k]){if(have.has(f.name))continue;try{const u=await AS.upload(f,'docs');add.push({id:u.id,url:u.url,name:f.name,type:u.contentType,at:today()});nf++}catch(e){toast('Upload failed: '+f.name)}}
+      if(add.length)docs[k]=[...(docs[k]||[]),...add]}
+    const ins=r.ins||{},yr=(r.mfg||'').slice(0,4);
+    const v={...old,id:old.id||uid(),reg:old.reg||r.reg,type:old.type&&old.type!=='Other'?old.type:rcType(r.cls),make:old.make||r.maker||'',model:old.model||r.model||'',year:old.year||yr,fuel:old.fuel||r.fuel||'',
+      rcv:r.rcValid||old.rcv||'',ins:ins.till&&(!old.ins||ins.till>old.ins)?ins.till:old.ins||'',docs,
+      docno:{...(old.docno||{}),...(ins.no?{ins:ins.no}:{})},
+      rcd:{cls:r.cls||'',regDate:r.regDate||'',rcNote:r.rcNote||'',owner:r.owner||'',ownerSr:r.ownerSr||'',chassis:r.chassis||'',engine:r.engine||'',colour:r.colour||'',body:r.body||'',mfg:r.mfg||'',financer:r.financer||'',tax:r.tax||'',check:r.check||'',insurer:ins.insurer||'',insCover:ins.cover||''},
+      payments:old.payments||[],valuations:old.valuations||[]};
+    delete v.sample;await put('vehicles',v)}
+  msg.textContent='';closeM();IMP=null;toast(P.length+' vehicles saved · '+nf+' files uploaded')}
 
 /* ---------- forms ---------- */
 function vForm(v){
@@ -447,6 +483,7 @@ document.addEventListener('click',e=>{
   if(['delV','delS','delPay','delVal','delF','delDoc'].includes(a)&&!b.dataset.armed){b.dataset.armed=1;const t=b.textContent;b.textContent='Tap again to delete';setTimeout(()=>{if(b.isConnected){b.textContent=t;delete b.dataset.armed}},3000);return}
   if(a==='addV')openM(vForm(),'f');
   else if(a==='editV')openM(vForm(vById(id)),'f');
+  else if(a==='impGo')impGo();
   else if(a==='openV')id?openV(id,b.dataset.go):closeM();
   else if(a==='close')closeM();
   else if(a==='addS'){if(!S.v.length){toast('Add a vehicle first');return}openM(sForm(null,b.dataset.v||S.fv||'',b.dataset.t),'f')}
@@ -480,7 +517,7 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{if(e.target.id==='fv'){S.fv=e.target.value;render()}if(e.target.id==='fm'){S.fm=e.target.value;render()}
   if(e.target.id==='sfFile'&&e.target.files[0]){const file=e.target.files[0];e.target.value='';toast('Reading statement…');
-    readSmartFleet(file).then(r=>{if(!r.fills.length){toast('No fuel fills found – is this a BPCL SmartFleet account statement?');return}SF=r;openM(sfPreview(),'f')}).catch(er=>{console.error(er);toast('Could not read this PDF')})}if(e.target.id==='billFile'&&AS){uploadBills([...e.target.files]);e.target.value=''}
+    readSmartFleet(file).then(r=>{if(!r.fills.length){toast('No fuel fills found – is this a BPCL SmartFleet account statement?');return}SF=r;openM(sfPreview(),'f')}).catch(er=>{console.error(er);toast('Could not read this PDF')})}if(e.target.id==='impFile'&&AS){const fl=[...e.target.files];e.target.value='';impRead(fl)}if(e.target.id==='billFile'&&AS){uploadBills([...e.target.files]);e.target.value=''}
   if(e.target.dataset&&e.target.dataset.doc&&AS){const inp=e.target,k=inp.dataset.doc,vid=inp.dataset.vid,files=[...inp.files];inp.value='';(async()=>{const add=[];for(const file of files){toast('Uploading '+file.name+'…');try{const r=await AS.upload(file,'docs');add.push({id:r.id,url:r.url,name:file.name,type:r.contentType,at:today()})}catch(er){toast(er.code==='too_large'?'File too large (max 10 MB)':er.code==='unsupported_type'?'Only photos or PDF':'Upload failed')}}
     if(add.length){const v=vById(vid);put('vehicles',{...v,docs:{...(v.docs||{}),[k]:[...(((v.docs||{})[k])||[]),...add]}});toast(add.length+' file'+(add.length>1?'s':'')+' saved')}})()}if(e.target.closest('form[data-f=svc]'))updRepl()});
 document.addEventListener('submit',e=>{
