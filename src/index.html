@@ -3782,7 +3782,7 @@ draw(){const el=this.el,L=siloList(),N=siloSrc(),live=!!(N&&N===S.siloLive),adm=
   const x=this.sel!=null&&L.find(s=>String(s.id)===String(this.sel));if(x){this.detail(x);return}
   const T=today(),Y=addDays(T,-1),sts=L.map(s=>[s,siloState(s)]),tot=L.reduce((a,s)=>a+Math.max(0,num(s.kg)),0),uT=L.reduce((a,s)=>a+num((siloDay(s.id,T)||{}).u),0),uY=L.reduce((a,s)=>a+num((siloDay(s.id,Y)||{}).u),0),nLow=sts.filter(z=>z[1].low).length;
   const cards=sts.map(([s,st])=>{const td=siloDay(s.id,T)||{};return `<button class="silo-c" data-silo="${s.id}">${siloTank(st)}<div class="silo-i"><div class="silo-n">${esc(s.name)}${st.c.sh?` <span class="pill">${st.c.sh}</span>`:''}</div>
-    <div class="silo-kg">${siloT(s.kg)}${st.pct!=null?` <span class="tiny muted">${Math.round(st.pct)}%</span>`:''}</div>
+    <div class="silo-kg">${fmtN(Math.max(0,num(s.kg)))} kg${st.pct!=null?` <span class="tiny muted">${Math.round(st.pct)}%</span>`:''}</div>
     <div class="tiny muted">${t('siloUsedT')} ${td.n?fmtN(td.u)+' kg':'–'}${st.left!=null?' · '+t('siloLeft',{d:f1(st.left)}):''}</div>
     <div>${st.low?`<span class="pill r">${t('siloLow')}</span> `:st.warn?`<span class="pill a">${t('siloSoon')}</span> `:''}${st.stale?`<span class="pill a">${t('siloStale')}</span> `:''}${st.neg?`<span class="pill a">${t('siloNeg',{k:fmtN(s.kg)})}</span> `:''}${td.fills?`<span class="pill g">⬆ ${t('siloRefill')}</span>`:''}</div></div></button>`}).join('');
   const sh=siloShedUse(Y),cmp=Object.keys(sh).sort((a,b)=>SHEDS.indexOf(a)-SHEDS.indexOf(b)).map(k=>{const e=num(((S.calc||{})[Y]||{})[k]&&S.calc[Y][k].feed),dif=e?(e-sh[k])/sh[k]*100:null,bad=dif!=null&&Math.abs(dif)>10;
@@ -3796,7 +3796,7 @@ detail(x){const el=this.el,d=this.date||today(),y=siloDay(x.id,d)||{},st=siloSta
   const rows=[];for(let i=0;i<14;i++){const dd=addDays(d,-i),z=siloDay(x.id,dd);if(z&&z.n)rows.push(`<tr><td>${fmtDate(dd)}</td><td class="n">${fmtN(z.o)}</td><td class="n">${z.f?'+'+fmtN(z.f):'–'}</td><td class="n"><b>${fmtN(z.u)}</b></td><td class="n">${fmtN(z.c)}</td></tr>`)}
   el.innerHTML=`<div class="card"><div class="flex"><button class="ghost" id="siBack">← ${t('siloAll')}</button></div>
     <h2 style="margin-top:8px">🛢 ${esc(x.name)}${sh?` <span class="pill">${sh}</span>`:''}</h2>
-    <div class="muted">${t('siloNow')}: <b>${siloT(x.kg)}</b>${st.pct!=null?' ('+Math.round(st.pct)+'%)':''}${st.left!=null?' · '+t('siloLeft',{d:f1(st.left)}):''} · ${x.la?t('siloSig',{t:new Date(x.la).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}):t('siloStale')}</div>
+    <div class="muted">${t('siloNow')}: <b>${fmtN(Math.max(0,num(x.kg)))} kg</b>${st.pct!=null?' ('+Math.round(st.pct)+'%)':''}${st.left!=null?' · '+t('siloLeft',{d:f1(st.left)}):''} · ${x.la?t('siloSig',{t:new Date(x.la).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}):t('siloStale')}</div>
     <div class="row" style="margin-top:10px"><div><label class="f">${t('date')}</label><input type="date" id="siDate" value="${d}" max="${today()}" min="${addDays(today(),-35)}"></div><div></div></div>
     <div class="kpis">${kpi(t('siloOpen'),y.n?siloT(y.o):'–','')}${kpi(t('siloRefill'),y.f?'+'+siloT(y.f):'–',y.fills?t('siloTimes',{n:y.fills}):'')}${kpi(t('siloUsed'),y.n?siloT(y.u):'–',d===today()?t('siloSoFar'):'')}${kpi(t('siloClose'),y.n?siloT(y.c):'–',y.n?t('siloReads',{n:y.n}):'')}</div>
     ${siloLine(x,d)}
